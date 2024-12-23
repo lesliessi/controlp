@@ -58,28 +58,26 @@ def loginUser():
                     cursor_bienvenida.execute(sql, (cedula,))
                     datosBienvenida = cursor_bienvenida.fetchone()
 
-                    # Verifica si se obtuvieron resultados
+                    # Almacenar los datos del usuario en la sesión
                     if datosBienvenida:
-                        print(datosBienvenida)  # Asegúrate de que contiene los datos correctos
+                        session['nombre'] = datosBienvenida['nombre']
+                        session['apellido'] = datosBienvenida['apellido']
                     else:
-                        print("No se encontraron datos de bienvenida para este usuario.")
+                        session['nombre'] = 'Desconocido'
+                        session['apellido'] = 'Desconocido'
 
-                    # Registrar historial de sesión
-                    historialDeSesion(account['codigo_usuario'])
-
-                    # Obtener la última sesión antes de la actual
-                    # Obtén el código del historial actual (el último que insertamos)
-                    codigo_historial_actual = cursor.lastrowid
-
-                    # Llamar a la función para obtener la última sesión
-                    ultima_sesion = obtener_ultima_sesion_anterior(account['codigo_usuario'], codigo_historial_actual)
-
+                    # Obtener la última sesión antes de la actual (no incluir la sesión activa)
+                    ultima_sesion = obtener_ultima_sesion_anterior(account['codigo_usuario'], None)
+                    
                     if ultima_sesion:
                         # Hacer algo con la última sesión anterior, por ejemplo:
                         print(f"Última sesión: {ultima_sesion['ultima_sesion']}")
                     else:
                         print("No hay historial anterior.")
-
+                    
+                    # Registrar historial de sesión
+                    historialDeSesion(account['codigo_usuario'])
+                    
                     flash ('Ha iniciado sesión correctamente.')
                     
 

@@ -96,18 +96,27 @@ def obtener_ultima_sesion_anterior(codigo_usuario, codigo_historial_actual):
         cursor = conexion_MySQLdb.cursor(dictionary=True)
 
         # Consulta SQL: obtenemos la última sesión antes de la actual
-        query = """
-        SELECT h.codigo_historial, h.ultima_sesion
-        FROM historial h
-        JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
-        WHERE ugh.codigo_usuario = %s
-        AND h.codigo_historial != %s  -- Excluimos el historial de la sesión actual
-        ORDER BY h.ultima_sesion DESC
-        LIMIT 1  -- Solo obtenemos la más reciente
-        """
-
-        # Ejecutar la consulta con los parámetros
-        cursor.execute(query, (codigo_usuario, codigo_historial_actual))
+        if codigo_historial_actual is None:
+            query = """
+            SELECT h.codigo_historial, h.ultima_sesion
+            FROM historial h
+            JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
+            WHERE ugh.codigo_usuario = %s
+            ORDER BY h.ultima_sesion DESC
+            LIMIT 1  
+            """
+            cursor.execute(query, (codigo_usuario,))
+        else:
+            query = """
+            SELECT h.codigo_historial, h.ultima_sesion
+            FROM historial h
+            JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
+            WHERE ugh.codigo_usuario = %s
+            AND h.codigo_historial != %s 
+            ORDER BY h.ultima_sesion DESC
+            LIMIT 1  
+            """
+            cursor.execute(query, (codigo_usuario, codigo_historial_actual))
         ultima_sesion = cursor.fetchone()
 
         # Cerrar el cursor y la conexión

@@ -43,22 +43,26 @@ def not_found(error):
 @app.route('/')
 def inicio():
     if 'conectado' in session:
+        nombre = session.get('nombre', 'Desconocido')
+        apellido = session.get('apellido', 'Desconocido')
 
         if session['rol']==1:
-            return render_template ('dashboard/dashboard.html')
+            return render_template ('dashboard/dashboard.html', nombre=nombre, apellido=apellido)
         else:
-            return render_template ('dashboard2/dashboard2.html')
+            return render_template ('dashboard2/dashboard2.html', nombre=nombre, apellido=apellido)
     return render_template('login/login.html')
     
     
 @app.route('/login')
 def login():
     if 'conectado' in session:
+        nombre = session.get('nombre', 'Desconocido')
+        apellido = session.get('apellido', 'Desconocido')
 
         if session['rol']==1:
-            return render_template('dashboard/dashboard.html', dataLogin = dataLoginSesion())
+            return render_template('dashboard/dashboard.html', dataLogin = dataLoginSesion(), nombre=nombre, apellido=apellido)
         else:
-            return render_template('dashboard2/dashboard2.html', dataLogin = dataLoginSesion())
+            return render_template('dashboard2/dashboard2.html', dataLogin = dataLoginSesion(), nombre=nombre, apellido=apellido)
     else:
         return render_template('login/login.html')
 
