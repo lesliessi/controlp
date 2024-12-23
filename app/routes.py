@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session, flash
+from flask import Flask, render_template, redirect, url_for, session, flash, Blueprint
 from funciones import *  #Importando mis Funciones
 import conexionBD as db
 from arrow import utcnow, get
@@ -13,7 +13,6 @@ from reportlab.pdfgen import*
 #Declarando nombre de la aplicación e inicializando, crear la aplicación Flask
 app = Flask(__name__)
 application = app
-
 
 app.secret_key = '97110c78ae51a45af397be6534caef90ebb9b1dcb3380af008f90b23a5d1616bf19bc29098105da20fe'
 
@@ -52,19 +51,6 @@ def inicio():
             return render_template ('dashboard2/dashboard2.html', nombre=nombre, apellido=apellido)
     return render_template('login/login.html')
     
-    
-@app.route('/login')
-def login():
-    if 'conectado' in session:
-        nombre = session.get('nombre', 'Desconocido')
-        apellido = session.get('apellido', 'Desconocido')
-
-        if session['rol']==1:
-            return render_template('dashboard/dashboard.html', dataLogin = dataLoginSesion(), nombre=nombre, apellido=apellido)
-        else:
-            return render_template('dashboard2/dashboard2.html', dataLogin = dataLoginSesion(), nombre=nombre, apellido=apellido)
-    else:
-        return render_template('login/login.html')
 
 
 #Ruta para editar el perfil del usuario
@@ -349,6 +335,7 @@ def logout():
     session.pop('conectado', None)
     session.pop('codigo_usuario', None)
     session.pop('usuario', None)
+    session.pop('historial_registrado', None)
     flash('La sesión fue cerrada correctamente.')
     return render_template('login/login.html', msjAlert = msgClose, typeAlert=1)
 

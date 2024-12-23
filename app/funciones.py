@@ -89,44 +89,35 @@ def obtener_historial(codigo_usuario):
 
     return resultados
 
-def obtener_ultima_sesion_anterior(codigo_usuario, codigo_historial_actual):
+def obtener_ultima_sesion_anterior(codigo_usuario):
     try:
         # Conectar a la base de datos
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor(dictionary=True)
 
-        # Consulta SQL: obtenemos la última sesión antes de la actual
-        if codigo_historial_actual is None:
-            query = """
-            SELECT h.codigo_historial, h.ultima_sesion
-            FROM historial h
-            JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
-            WHERE ugh.codigo_usuario = %s
-            ORDER BY h.ultima_sesion DESC
-            LIMIT 1  
-            """
-            cursor.execute(query, (codigo_usuario,))
-        else:
-            query = """
-            SELECT h.codigo_historial, h.ultima_sesion
-            FROM historial h
-            JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
-            WHERE ugh.codigo_usuario = %s
-            AND h.codigo_historial != %s 
-            ORDER BY h.ultima_sesion DESC
-            LIMIT 1  
-            """
-            cursor.execute(query, (codigo_usuario, codigo_historial_actual))
+        query=("""SELECT h.ultima_sesion
+                FROM historial h
+                JOIN usuario_genera_historial ugh ON ugh.codigo_historial = h.codigo_historial
+                JOIN usuario u ON ugh.codigo_usuario = u.codigo_usuario
+                WHERE u.codigo_usuario = %s
+                AND h.codigo_historial < (
+                    SELECT MAX(h2.codigo_historial)
+                    FROM historial h2
+                    JOIN usuario_genera_historial ugh2 ON ugh2.codigo_historial = h2.codigo_historial
+                    JOIN usuario u2 ON ugh2.codigo_usuario = u2.codigo_usuario
+                    WHERE u2.codigo_usuario = %s
+                )
+                ORDER BY h.ultima_sesion DESC
+                LIMIT 1;""")
+        
+        cursor.execute(query, (codigo_usuario,codigo_usuario,))
         ultima_sesion = cursor.fetchone()
 
         # Cerrar el cursor y la conexión
         cursor.close()
+        
+        return ultima_sesion  # Retorna el último historial o None si no existe
 
-        # Devolver el resultado
-        if ultima_sesion:
-            return ultima_sesion
-        else:
-            return None  # No hay historial anterior
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")

@@ -1,5 +1,5 @@
 #Importando  flask y algunos paquetes
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
 from datetime import date
 from datetime import datetime
 
@@ -16,12 +16,14 @@ import tkinter
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
+auth = Blueprint('auth', __name__)
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+
+@app.route('/login', methods=['GET', 'POST'])
 def loginUser():
     conexion_MySQLdb = connectionBD()
     if 'conectado' in session:
-        return render_template('dashboard/dashboard.html', dataLogin = dataLoginSesion(), dataB=datosBienvenida())
+        return render_template('dashboard')
     else:
         msg = ''
         if request.method == 'POST'and 'usuario' in request.form and 'contraseña' in request.form:
@@ -49,6 +51,7 @@ def loginUser():
                     session['contraseña']          = account['contraseña']
                     session['rol']                 = account['rol']
 
+
                     conexion_MySQLdb1 = connectionBD()  # Abre la conexión a la base de datos
                     cedula = session['cedula']
 
@@ -66,25 +69,19 @@ def loginUser():
                         session['nombre'] = 'Desconocido'
                         session['apellido'] = 'Desconocido'
 
-                    # Obtener la última sesión antes de la actual (no incluir la sesión activa)
-                    ultima_sesion = obtener_ultima_sesion_anterior(account['codigo_usuario'], None)
-                    
-                    if ultima_sesion:
-                        # Hacer algo con la última sesión anterior, por ejemplo:
-                        print(f"Última sesión: {ultima_sesion['ultima_sesion']}")
-                    else:
-                        print("No hay historial anterior.")
-                    
-                    # Registrar historial de sesión
-                    historialDeSesion(account['codigo_usuario'])
-                    
+                    # Registrar historial de sesión solo la primera vez después de iniciar sesión
+                    if 'historial_registrado' not in session:
+                        historialDeSesion(account['codigo_usuario'])
+                        session['historial_registrado'] = True  # Marcar que el historial fue registrado
+
+
                     flash ('Ha iniciado sesión correctamente.')
                     
 
                     if session['rol']==1:
-                        return render_template('dashboard/dashboard.html', msjAlert = msg, typeAlert=1, dataLogin = dataLoginSesion(), ultima_sesion=ultima_sesion)
+                        return redirect(url_for('dashboard'))
                     else:
-                        return render_template('dashboard2/dashboard2.html', msjAlert = msg, typeAlert=1, dataLogin = dataLoginSesion(), ultima_sesion=ultima_sesion)
+                        return render_template('dashboard2/dashboard2.html', msjAlert = msg, typeAlert=1, dataLogin = dataLoginSesion())
 
                 else:
                     flash ('Datos incorrectos, por favor verifique.')
@@ -100,9 +97,54 @@ def hash_contraseña(contraseña):
     hashed_contraseña = bcrypt.hashpw(contraseña.encode('utf-8'), salt)
     return hashed_contraseña
 
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    # Verificar si el usuario está conectado
+    if 'conectado' not in session:
+        return redirect(url_for('login'))  # Redirigir al login si no está conectado
+
+    # Asegurarse de que la última sesión se obtiene correctamente
+    ultima_sesion = obtener_ultima_sesion_anterior(session['codigo_usuario'])
+
+    if ultima_sesion:
+        print(f"Última sesión: {ultima_sesion['ultima_sesion']}")  # Esto debe imprimirse si se obtiene correctamente
+    else:
+        print("No hay historial anterior.")  # Este mensaje si no se encuentra historial
+
+    # Obtener los datos del usuario desde la base de datos
+    conexion_MySQLdb = connectionBD()
+    cedula = session['cedula']
+    sql = "SELECT persona.nombre, persona.apellido FROM persona JOIN usuario ON persona.cedula = %s"
+    cursor_bienvenida = conexion_MySQLdb.cursor(dictionary=True)
+    cursor_bienvenida.execute(sql, (cedula,))
+    datosBienvenida = cursor_bienvenida.fetchone()
+
+    # Si no se encuentran los datos, usamos un valor predeterminado
+    if datosBienvenida:
+        session['nombre'] = datosBienvenida['nombre']
+        session['apellido'] = datosBienvenida['apellido']
+    else:
+        session['nombre'] = "Desconocido"
+        session['apellido'] = "Desconocido"
+
+    if session['rol']==1:
+    # Mostrar la página de bienvenida con los datos de la última sesión y del usuario
+        return render_template('dashboard/dashboard.html', 
+                           ultima_sesion=ultima_sesion, 
+                           nombre=session['nombre'], 
+                           apellido=session['apellido'])
+    else:
+        return render_template ('dashboard2/dashboard2.html', 
+                           ultima_sesion=ultima_sesion, 
+                           nombre=session['nombre'], 
+                           apellido=session['apellido'])
+
 def validar_contraseña(contraseña):
     patron = re.compile(r'^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$')
     return patron.match(contraseña)
+
+
+
 
 def historialDeSesion(codigo_usuario):
     try:
@@ -590,6 +632,9 @@ def actualizarPerfil(codigo_usuario):
                     cursor.execute('UPDATE empleado SET tipo= %s, cargo =%s WHERE cedula =%s', (tipo, cargo, cedula))
                     conexion_MySQLdb.commit()
                     cursor.close()
+                    # Actualizar los datos de la sesión con los nuevos valores
+                    session['nombre'] = nombre
+                    session['apellido'] = apellido
                     flash ('Perfil actualizado correctamente.', 'success')
                     return redirect(url_for('perfil'))
             else:
@@ -597,6 +642,8 @@ def actualizarPerfil(codigo_usuario):
                 return redirect(url_for('perfil'))
 
         return redirect(url_for('perfil'))
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)

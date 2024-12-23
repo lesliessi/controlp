@@ -59,7 +59,7 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="{{url_for('perfil', codigo_usuario=codigo_usuario)}}">Perfil</a>
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="{{url_for('perfil')}}">Perfil</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -79,7 +79,7 @@
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{url_for('inicio')}}">
+            <a class="nav-link active" aria-current="page" href="{{url_for('dashboard')}}">
               <span data-feather="home"></span>
               Dashboard
             </a>
