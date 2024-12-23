@@ -1,0 +1,25 @@
+
+.form-row {
+  display: flex; /* Utiliza Flexbox */
+  gap: 10px;     /* Espacio entre los dos campos */
+  margin-bottom: 5px
+}
+
+.form-outline {
+  flex: 1; /* Hace que cada contenedor ocupe el mismo espacio */
+}
+.form-outline input {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-radius: 25px;
+  border-color: #354374;
+  border-width: 3px;
+}
+
+.form-outline ::option {
+  margin-bottom: -1px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-radius: 25px;
+}

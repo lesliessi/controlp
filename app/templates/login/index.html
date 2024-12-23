@@ -1,0 +1,38 @@
+{% extends 'login/base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block body %}
+
+<div class="container">
+  <div class="row justify-content-md-center mt-5 mb-5">
+
+    <!--Login-->
+    <div class="col-md-6 cajaLogin" id="styleLogin">
+      <div class="mb-12">
+        <a href="{{ url_for('inicio') }}">
+            <img src="{{url_for('static', filename ='assets/img/logo.jpg') }}" alt="Logo" class="logoLogin">
+        </a>
+    </div>
+      {% include 'login/login.html' %}
+    </div>
+
+<!---dashboard-->
+<div class="navbar-nav">
+  <div class="nav-item text-nowrap">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Company name</a>
+</div>
+<div>
+  {% include 'dashboard/dashboard.html' %}
+</div>
+
+    <!---Register User-->
+    <div class="col-md-6 form-registerUser" id="styleLogin" style="display:none;">
+      <a href="{{ url_for('inicio') }}">
+        <img src="{{url_for('static', filename ='assets/img/logo.jpg') }}" alt="Logo" class="logoLogin">
+      </a>
+      {% include '/registerUser.html' %}
+    </div>
+    <!---fin register User-->
+
+  </div>
+</div>
