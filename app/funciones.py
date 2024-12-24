@@ -70,24 +70,7 @@ def dataPerfilUsuario():
     conexion_MySQLdb.close() #cerrando conexion de la BD
     return datosUsuario
 
-def obtener_historial(codigo_usuario):
-    conexion_MySQLdb = connectionBD()
-    cursor = conexion_MySQLdb.cursor(dictionary=True)
-    
-    # Obtener todos los registros de historial de un usuario específico
-    query = """
-    SELECT h.codigo_historial, h.ultima_sesion
-    FROM historial h
-    JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
-    WHERE ugh.codigo_usuario = %s
-    ORDER BY h.ultima_sesion DESC
-    """
-    
-    cursor.execute(query, (codigo_usuario,))
-    resultados = cursor.fetchall()
-    cursor.close()
 
-    return resultados
 
 def obtener_ultima_sesion_anterior(codigo_usuario):
     try:

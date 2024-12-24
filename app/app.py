@@ -223,10 +223,15 @@ def registerUser():
             cursor.execute (SQL1, val1)
             conexion_MySQLdb.commit()
             cursor.close()
-            SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad, rol) VALUES (%s, %s, %s, %s, 2)"
+            SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad) VALUES (%s, %s, %s, %s)"
             val2= (cedula, usuario, hashed, pregunta_seguridad)
             cursor = conexion_MySQLdb.cursor(dictionary=True)
             cursor.execute (SQL2, val2)
+            conexion_MySQLdb.commit()
+            cursor.close()
+            SQL3= "INSERT INTO usuario_tiene_rol (codigo_rol, codigo_usuario) VALUES (2,(SELECT MAX(codigo_usuario) FROM usuario))"
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute (SQL3)
             conexion_MySQLdb.commit()
             cursor.close()
                 
@@ -423,8 +428,33 @@ def edit(cedula):
         conexion_MySQLdb.commit()
     return redirect(url_for('verRegistrosEmpleados'))
 
+@app.route('/editRolUsuario/<string:codigo_usuario>', methods=['POST'])
+def editRolUsuario(codigo_usuario):
+    codigo_rol   = request.form['rol']
+    
+    if request.method== 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql = "UPDATE usuario_tiene_rol SET codigo_rol = %s WHERE codigo_usuario = %s"
+        data = (codigo_rol, codigo_usuario,)
+        cursor.execute(sql, data)
+        conexion_MySQLdb.commit()
+        flash ('Datos actualizados correctamente.')
+        cursor.close()
+    return redirect(url_for('administrarUsuarios'))
 
-
+@app.route('/deleteUsuario/<string:codigo_usuario>')
+def deleteUsuario(codigo_usuario):
+    conexion_MySQLdb = connectionBD()
+    cursor = conexion_MySQLdb.cursor()
+    sql = "DELETE FROM usuario WHERE codigo_usuario = %s"
+    data = (codigo_usuario,)
+    cursor.execute(sql, data)
+    flash ('Usuario removido exitosamente.')
+    conexion_MySQLdb.commit()
+    cursor.close()
+    
+    return redirect(url_for('administrarUsuarios'))
 
 @app.route('/deleteCliente/<string:cedula>')
 def deleteCliente(cedula):
