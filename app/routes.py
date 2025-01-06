@@ -73,6 +73,46 @@ def perfil():
         return render_template('dashboard/perfil/perfil.html',data= insertObject, dataUsuario = dataPerfilUsuario(), dataLogin = dataLoginSesion())
 
 
+@app.route('/administrar-usuarios')
+def administrarUsuarios():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor()
+    cursor.execute ("""SELECT utr.codigo_rol, u.codigo_usuario, u.usuario, u.cedula, p.nombre, p.apellido, rol.descripcion
+                        FROM usuario u
+                        JOIN persona p ON u.cedula = p.cedula
+                        JOIN usuario_tiene_rol utr ON utr.codigo_usuario = u.codigo_usuario
+                        JOIN rol ON rol.codigo_rol = utr.codigo_rol;
+                        """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+                  
+    return render_template ('dashboard/adminUsuarios/adminUsuarios.html', data = insertObject)
+
+@app.route('/historial-de-sesiones')
+def historialSesiones():
+    conexion_MySQLdb = connectionBD()
+    cursor = conexion_MySQLdb.cursor(dictionary=True)
+    
+    # Obtener todos los registros de historial de un usuario específico
+    cursor.execute( """
+    SELECT usuario.usuario, h.codigo_historial, h.ultima_sesion
+    FROM historial h
+    JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
+    JOIN usuario ON ugh.codigo_usuario = usuario.codigo_usuario
+    ORDER BY h.ultima_sesion DESC
+    """)
+    
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    cursor.close()
+    print (myresult)
+    return render_template ('/dashboard/adminUsuarios/historialSesiones.html', data = myresult)
+
 @app.route('/ver-registros-Empleados') 
 def verRegistrosEmpleados():
     conexion_MySQLdb = connectionBD()
