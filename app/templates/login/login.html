@@ -42,29 +42,30 @@
             {% endwith %}
 
 
-            <section class="vh-100" style="background-color: #354374;">
-              <div class="container py-5 h-100">
-                <div class="row d-flex justify-content-center align-items-center h-100">
-                  <div class="col col-xl-10">
-                    <div class="card" style="border-radius: 1rem; background-color: #E0E2DB;">
-                      <div class="row g-0">
-                        <div class="col-md-6 col-lg-5 d-none d-md-block">
-                          <img src="\static\assets\img\mujercompu.jpg"  
-                            alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
-                        </div>
-                        <div class="col-md-6 col-lg-7 d-flex align-items-center">
+            <section class="vh-100 d-flex justify-content-center align-items-center" 
+            style="background: url('/static/assets/img/fondo7.jpg') no-repeat center center; background-size: cover;">
+                  <div class="container py-5 h-100 d-flex justify-content-center align-items-center">
+                    <div class="col col-xl-8 col-lg-10">
+                      <div class="card" style="border-radius: 1rem; 
+                                                background: transparent; 
+                                                border: 2px solid rgba(255, 255, 255, .2); 
+                                                backdrop-filter: blur(20px); 
+                                                max-width: 500px; /* Anchura máxima del contenedor */
+                                                width: 100%; /* Asegura que ocupe el ancho disponible */
+                                                ">
+                          
                           <div class="card-body p-4 p-lg-5 text-black">
             
 
                               
                                     
             
-                              <div class="d-flex align-items-center mb-3 pb-1">
+                              <div class="d-flex align-items-center mb-3 pb-1 text-white">
                                 <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
                                 <span class="h1 fw-bold mb-0">Control+P</span>
                               </div>
             
-                              <h4 class="d-flex align-items-center mb-3 pb-1 fw-bold mb-3 pb-3" style="letter-spacing: 1px;">Iniciar sesión</h4>
+                              <h4 class="d-flex align-items-center mb-3 pb-1 fw-bold mb-3 pb-3" style="letter-spacing: 1px; color: #ffff;">Iniciar sesión</h4>
             
                               <div data-mdb-input-init class="form-outline mb-4">
                                 <input required type="text" id="usuario" class="form-control form-control-lg" name="usuario" placeholder="Ingrese su usuario"/>
@@ -72,10 +73,10 @@
             
                               <div class=" form-outline mb-4">
                                 <input required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña" />
-                                <i  class='bx bx-show-alt'></i>
+                                <i  class='bx bx-show-alt' style="color: #ffff;"></i>
                               </div>
             
-                              <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;" class="w-100 btn btn-lg btn btn-dark btn-lg btn-block" type="submit">Ingresar</button>
+                              <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;" class="w-100 btn btn-lg btn btn-light btn-lg btn-block" type="submit">Ingresar</button>
 
             
                               <a class="small text-muted" href="{{url_for('recuperarContraseña')}}">Olvidé mi contraseña</a>
@@ -95,6 +96,8 @@
   
   </form>
   <script>
+  localStorage.clear(); // Limpiar el almacenamiento local al entrar al login
+
    const contraseña = document.getElementById("contraseña"),
          icon = document.querySelector(".bx");
 

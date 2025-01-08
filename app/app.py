@@ -21,6 +21,8 @@ auth = Blueprint('auth', __name__)
 
 @app.route('/login', methods=['GET', 'POST'])
 def loginUser():
+    session.clear()  # Limpia los datos de la sesión
+
     conexion_MySQLdb = connectionBD()
     if 'conectado' in session:
         return render_template('dashboard')
@@ -37,7 +39,12 @@ def loginUser():
             cursor.execute (SQLlogin,VALlogin)
             account = cursor.fetchone()
             cursor.close()
-
+            SQLlogin2 = "SELECT rol.codigo_rol FROM rol JOIN usuario_tiene_rol utr ON rol.codigo_rol =  utr.codigo_rol JOIN usuario u ON u.codigo_usuario = utr.codigo_usuario WHERE u.codigo_usuario = %s"
+            VALlogin2 = [(account['codigo_usuario'])]
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute (SQLlogin2,VALlogin2)
+            account2 = cursor.fetchone()
+            cursor.close()
 
             if account:   
                 # Obtener el hash almacenado y comparar con la contraseña ingresada
@@ -49,7 +56,7 @@ def loginUser():
                     session['cedula']              = account['cedula']
                     session['usuario']             = account['usuario']
                     session['contraseña']          = account['contraseña']
-                    session['rol']                 = account['rol']
+                    session['rol']                 = account2['codigo_rol']
 
 
                     conexion_MySQLdb1 = connectionBD()  # Abre la conexión a la base de datos
@@ -106,10 +113,6 @@ def dashboard():
     # Asegurarse de que la última sesión se obtiene correctamente
     ultima_sesion = obtener_ultima_sesion_anterior(session['codigo_usuario'])
 
-    if ultima_sesion:
-        print(f"Última sesión: {ultima_sesion['ultima_sesion']}")  # Esto debe imprimirse si se obtiene correctamente
-    else:
-        print("No hay historial anterior.")  # Este mensaje si no se encuentra historial
 
     # Obtener los datos del usuario desde la base de datos
     conexion_MySQLdb = connectionBD()
@@ -183,19 +186,45 @@ def registerUser():
     
     if request.method == 'POST':
         cedula                       = request.form['cedula']
-        usuario                   = request.form['usuario']
-        contraseña                  = request.form['contraseña']
-        repetir_contraseña             = request.form['repetir_contraseña']
-        pregunta_seguridad                   = request.form['pregunta_seguridad']
         nombre                      = request.form['nombre']
         apellido                    = request.form['apellido']
         telefono                    = request.form['telefono']
         tipo                        = request.form['tipo']
         cargo                       =request.form['cargo']
+
+        session ['cedula']=cedula
+        session ['nombre']=nombre
+        session ['apellido']=apellido
+        session ['telefono']=telefono
+        session ['cargo']=cargo
+        session ['tipo']=tipo
+        
           
-        #current_time = datetime.datetime.now()
-        hashed = hash_contraseña(contraseña)
-        print(hashed)
+        cursor = conexion_MySQLdb.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM usuario WHERE cedula = %s', (cedula,))
+        account1 = cursor.fetchone()
+        cursor.close()
+
+        if account1:
+            flash ('Ya existe un usuario con esta cédula.')
+
+        else:
+            return redirect (url_for('registerUser2'))
+
+    return render_template('login/registerUser.html', msjAlert = msg, typeAlert=0)
+
+
+@app.route('/registro-usuario-2', methods=['GET', 'POST'])
+def registerUser2():
+    msg = ''
+    conexion_MySQLdb = connectionBD()  
+    
+
+    if request.method == 'POST':
+        usuario                       = request.form['usuario']
+        session ['usuario']                       = usuario
+        
+
         cursor = conexion_MySQLdb.cursor(dictionary=True)
         cursor.execute('SELECT * FROM usuario WHERE usuario = %s', (usuario,))
         account = cursor.fetchone()
@@ -203,41 +232,102 @@ def registerUser():
 
         if account:
             flash ('Ya existe el usuario.')
-        elif contraseña != repetir_contraseña:
-            flash ('Las contraseñas no coinciden.')
-           
-        elif not usuario or not contraseña or not contraseña or not repetir_contraseña:
-            flash ('El formulario no debe estar vacio.')
         else:
-            conexion_MySQLdb = connectionBD()
-            SQL= "INSERT INTO persona (cedula, nombre, apellido, telefono) VALUES (%s, %s, %s, %s)" 
-            val= (cedula, nombre, apellido, telefono)
-            cursor = conexion_MySQLdb.cursor(dictionary=True)
-            cursor.execute (SQL, val)
-            conexion_MySQLdb.commit()
-            cursor.close()
-            flash ('Cuenta creada correctamente.')
-            SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
-            val1= (cedula, cargo, tipo)
-            cursor = conexion_MySQLdb.cursor(dictionary=True)
-            cursor.execute (SQL1, val1)
-            conexion_MySQLdb.commit()
-            cursor.close()
-            SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad) VALUES (%s, %s, %s, %s)"
-            val2= (cedula, usuario, hashed, pregunta_seguridad)
-            cursor = conexion_MySQLdb.cursor(dictionary=True)
-            cursor.execute (SQL2, val2)
-            conexion_MySQLdb.commit()
-            cursor.close()
-            SQL3= "INSERT INTO usuario_tiene_rol (codigo_rol, codigo_usuario) VALUES (2,(SELECT MAX(codigo_usuario) FROM usuario))"
-            cursor = conexion_MySQLdb.cursor(dictionary=True)
-            cursor.execute (SQL3)
-            conexion_MySQLdb.commit()
-            cursor.close()
-                
+            return redirect (url_for('registerUser3'))
 
-            return render_template('login/registerUser.html', msjAlert = msg, typeAlert=1)  
-    return render_template('login/registerUser.html', msjAlert = msg, typeAlert=0)
+    return render_template('login/registerUser2.html', msjAlert = msg, typeAlert=0)
+
+
+
+@app.route('/registro-usuario-3', methods=['GET', 'POST'])
+def registerUser3():
+    msg = ''
+    conexion_MySQLdb = connectionBD()  
+    
+
+    if request.method == 'POST':
+        pregunta_seguridad                       = request.form['pregunta_seguridad']
+        contraseña                       = request.form['contraseña']
+        repetir_contraseña                       = request.form['repetir_contraseña']
+
+        session ['pregunta_seguridad']=pregunta_seguridad
+        session ['contraseña']=contraseña
+        session ['repetir_contraseña']=repetir_contraseña
+
+        cedula = session.get ('cedula')
+        nombre = session.get ('nombre')
+        apellido = session.get ('apellido')
+        telefono = session.get ('telefono')
+        tipo = session.get ('tipo')
+        cargo = session.get ('cargo')
+        usuario = session.get ('usuario')       
+            
+        if contraseña != repetir_contraseña:
+                flash ('Las contraseñas no coinciden.')
+                return render_template(
+                'login/registerUser3.html',
+                msjAlert=msg,
+                typeAlert=1,
+                pregunta_seguridad=pregunta_seguridad,
+                contraseña=contraseña,
+                repetir_contraseña=repetir_contraseña
+            )
+            
+        elif not contraseña or not contraseña or not repetir_contraseña:
+                flash ('El formulario no debe estar vacio.')
+        else:
+            hashed = hash_contraseña(contraseña)
+            print(hashed)
+            try:
+                conexion_MySQLdb = connectionBD()
+                SQL= "INSERT INTO persona (cedula, nombre, apellido, telefono) VALUES (%s, %s, %s, %s)" 
+                val= (cedula, nombre, apellido, telefono)
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute (SQL, val)
+                conexion_MySQLdb.commit()
+                cursor.close()
+                SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
+                val1= (cedula, cargo, tipo)
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute (SQL1, val1)
+                conexion_MySQLdb.commit()
+                cursor.close()
+                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad) VALUES (%s, %s, %s, %s)"
+                val2= (cedula, usuario, hashed, pregunta_seguridad)
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute (SQL2, val2)
+                conexion_MySQLdb.commit()
+                cursor.close()
+                SQL3= "INSERT INTO usuario_tiene_rol (codigo_rol, codigo_usuario) VALUES (2,(SELECT MAX(codigo_usuario) FROM usuario))"
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute (SQL3)
+                conexion_MySQLdb.commit()
+                cursor.close()
+
+                flash ('Usuario registrado exitosamente.')
+
+
+                # Limpiar sesión al completar el registro exitoso
+                session.clear()
+                    
+            
+                return render_template('login/login.html', msjAlert = msg, typeAlert=1)
+            
+            except Exception as e:
+                conexion_MySQLdb.rollback()
+                flash(f'Error al crear la cuenta: {str(e)}')
+                return render_template(
+                    'login/registerUser3.html',
+                    msjAlert=msg,
+                    typeAlert=1,
+                    pregunta_seguridad=pregunta_seguridad,
+                    contraseña=contraseña,
+                    repetir_contraseña=repetir_contraseña
+                )
+             
+        return render_template('login/registerUser3.html', msjAlert = msg, typeAlert=1)  
+
+    return render_template('login/registerUser3.html', msjAlert = msg, typeAlert=0, )
 
 
 @app.route('/registrar-empleado', methods=['GET', 'POST'])
@@ -601,12 +691,10 @@ def recuperarContraseña():
 def cambiarContraseña(usuario):
     # Lógica para cambiar la contraseña
     conexion_MySQLdb = connectionBD()  
-    print (usuario)   
     cursor = conexion_MySQLdb.cursor(dictionary=True)
     cursor.execute('SELECT codigo_usuario FROM usuario WHERE usuario = %s', (usuario,))
     result=cursor.fetchone()
     codigo_usuario = result['codigo_usuario']
-    print(f"codigo_usuario obtenido: {codigo_usuario}")
 
     if request.method == 'POST':
         contraseña                  = request.form.get('contraseña')
