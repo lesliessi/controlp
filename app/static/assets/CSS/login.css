@@ -6,32 +6,56 @@ body {
 body {
   align-items: center;
   padding-bottom: 40px;
-  background-color: #39393d;
+  background-size: cover;
+  margin: 0;
+  padding: 0;
+}
+
+section {
+  height: 100vh; /* Asegura que ocupa toda la pantalla */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .container {
+  height: 100%; /* Ocupa toda la altura de la pantalla */
   display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
+.card {
+  margin: auto; /* Centra la tarjeta */
+  max-width: 500px;
+  width: 100%;
 }
 
 
 
 .form-login input[type="text"] {
+  position: relative;
+  color: #ffff;
   margin-bottom: -1px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
   border-radius: 25px;
-  border-color: #354374;
-  border-width: 3px;
+  border-color: #ffff;
+  border-width: 2px;
+  background: transparent;
+  width: 100%;
 }
 
 .form-login input[type="password"] {
+  color: #ffff;
   margin-bottom: -1px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-radius: 25px;
-  border-color: #354374;
-  border-width: 3px;
+  border-color: #ffff;
+  border-width: 2px;
+  background: transparent;
+  width: 100%;
 }
 
 .col-md-6.col-lg-5 {
@@ -51,10 +75,11 @@ height: 100%;
 }
 }
 
-input::placeholder {
-  color: #999; /* Cambia el color del placeholder a gris */
+input::placeholder, textarea::placeholder {
+  color: #fff !important; /* Cambia el color del placeholder */
   font-style: normal; /* Pone el texto en cursiva o normal*/
   font-size: 16px; /* Ajusta el tamaño de la fuente */
+  opacity: 1;
 }
 
 .bx {
@@ -68,4 +93,6 @@ input::placeholder {
 
 .form-outline {
   position: relative;  /* Esto permite posicionar elementos dentro de este contenedor */
+  width: 100%;
+
 }

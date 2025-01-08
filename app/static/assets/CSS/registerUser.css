@@ -9,12 +9,16 @@
   flex: 1; /* Hace que cada contenedor ocupe el mismo espacio */
 }
 .form-outline input {
+  color: #fff;
   margin-bottom: -1px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
   border-radius: 25px;
-  border-color: #354374;
-  border-width: 3px;
+  border-color: #fff;
+  border-width: 2px;
+  background: transparent;
+  width: 100%;
+
 }
 
 .form-outline ::option {
@@ -23,3 +27,4 @@
   border-top-right-radius: 0;
   border-radius: 25px;
 }
+
