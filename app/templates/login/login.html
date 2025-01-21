@@ -5,6 +5,7 @@
 {% block customeCSS %}
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/login.css')}}">
+
 <link rel="stylesheet" 
       href=
 "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
@@ -15,31 +16,33 @@
 "sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" 
     crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+<script src="{{ url_for('static', filename='js/validacionform.js') }}"></script>
 
 {%endblock %}
 
+
 {% block body %}
 
-
+<style >
+/* Estilo para el ícono de validación */
+.needs-validation:valid ~ .valid-feedback,
+.needs-validation:invalid ~ .invalid-feedback {
+  display: block;
+  position: absolute;
+  top: 50%; /* Centra verticalmente */
+  right: 50px; /* Ajusta más hacia la izquierda */
+  transform: translateY(-50%);
+  z-index: 1;
+}
+</style>
 <body class="text-center">
-  <form class="form-login" action="{{ url_for('loginUser') }}" method='POST'>
+  <form class="form-login needs-validation" novalidate action="{{ url_for('loginUser') }}" method='POST'>
     {% with messages = get_flashed_messages() %}
-            {% if messages %}
+  {% if messages %}
+  <div id="flashMessages" data-messages='{{ messages | tojson }}'></div>
+  {% endif %}
+{% endwith %}
 
-            <br/>
-            {% for message in messages %}
-
-            <div class="alert alert-primary alert-dismissible" role="alert">
-
-              <strong>{{ message }}</strong>
-
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-
-            </div>
-
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
 
 
             <section class="vh-100 d-flex justify-content-center align-items-center" 
@@ -68,12 +71,17 @@
                               <h4 class="d-flex align-items-center mb-3 pb-1 fw-bold mb-3 pb-3" style="letter-spacing: 1px; color: #ffff;">Iniciar sesión</h4>
             
                               <div data-mdb-input-init class="form-outline mb-4">
-                                <input required type="text" id="usuario" class="form-control form-control-lg" name="usuario" placeholder="Ingrese su usuario"/>
+                                <input required type="text" id="usuario" class="form-control form-control-lg" name="usuario" placeholder="Ingrese su usuario"
+                                minlength="5" 
+                                maxlength="20" 
+                                pattern="[A-Za-z0-9]+" required/>
+                              <div class="invalid-feedback" style="text-justify: auto;"></div>
+                              
                               </div>
             
                               <div class=" form-outline mb-4">
                                 <input required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña" />
-                                <i  class='bx bx-show-alt' style="color: #ffff;"></i>
+                                <i  class='bx bx-show-alt toggle password' style="color: #ffff;"></i>
                               </div>
             
                               <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;" class="w-100 btn btn-lg btn btn-light btn-lg btn-block" type="submit">Ingresar</button>
@@ -95,7 +103,9 @@
 
   
   </form>
+
   <script>
+
   localStorage.clear(); // Limpiar el almacenamiento local al entrar al login
 
    const contraseña = document.getElementById("contraseña"),
@@ -112,9 +122,52 @@
       icon.classList.add('bx-show-alt')
 
     }
-   })
+   });
+
+     // Example starter JavaScript for disabling form submissions if there are invalid fields
+     (function () {
+    'use strict'
+  
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+  
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+      .forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+  
+          form.classList.add('was-validated')
+        }, false)
+      })
+  })()
+  
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const flashMessagesContainer = document.getElementById('flashMessages');
+    if (flashMessagesContainer) {
+      const messages = JSON.parse(flashMessagesContainer.getAttribute('data-messages'));
+
+      messages.forEach((message) => {
+        Swal.fire({
+          icon: 'info', // Cambia según la categoría: 'success', 'error', 'warning', 'info', 'question'
+          title: 'Notificación',
+          text: message,
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      });
+    }
+  });
+</script>
+
   </body>
   
 {% endblock %}

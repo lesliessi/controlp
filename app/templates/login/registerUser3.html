@@ -20,22 +20,10 @@
 {%endblock %}
 
 {% block body %}
-
 <body>
     <form class="needs-validation" novalidate id="registerUser3" name="form-registerUser3"  action="{{ url_for('registerUser3') }}" method="POST" autocomplete="off">
     
-            {% with messages = get_flashed_messages()  %}
-            {% if messages %}
-          {% for message in messages %}
-          <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {% endfor %}
-          {% endif %}
-          {% endwith %}
+            
 
           <section class="vh-100 d-flex justify-content-center align-items-center" 
             style="background: url('/static/assets/img/fondo7.jpg') no-repeat center center; background-size: cover;">
@@ -51,7 +39,17 @@
                           
                           <div class="card-body p-4 p-lg-5 text-white">
 
-                            
+                            {% with messages = get_flashed_messages()  %}
+                            {% if messages %}
+                          {% for message in messages %}
+                          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                            </button>
+                          </div>
+                          {% endfor %}
+                          {% endif %}
+                          {% endwith %}
                                   
           
                             <div class="d-flex align-items-center mb-3 pb-1">
@@ -66,7 +64,8 @@
                             <label for="preguntas de seguridad" style="margin-bottom:-20px; color: #fff;">Pregunta de seguridad</label>
                                 <div data-mdb-input-init class="form-outline">
                                   <label for="pregunta_seguridad" class="form-label mt-1"></label>
-                                  <input id="pregunta_seguridad" type="text" name="pregunta_seguridad" class="form-control"placeholder="Color favorito" required>
+                                  <input id="pregunta_seguridad" type="text" name="pregunta_seguridad" class="form-control"placeholder="Nombre de tu primera mascota" 
+                                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+"  oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" required>
                                     <div class="invalid-feedback">
                                       Complete el campo
                                     </div>
@@ -75,21 +74,31 @@
 
                             <div class="form-row" style="margin-top: 20px;">
                               <div data-mdb-input-init class="form-outline">
-                                  <input required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña" />
+                                <div style="position: relative; display: flex; align-items: center;">
+                                  <input required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña"
+                                  minlength="8" 
+                                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
+                                  title="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&)." required/>
                                   <i class='bx bx-show-alt' style="color: #fff;"></i>
-                                  <div class="invalid-feedback">
-                                    Complete el campo
-                                  </div>
                                 </div>
+                                  <small id="passwordHelp" class="text-muted"></small>
+                                  <small id="passwordError" style="color: red; display: none;">La contraseña no cumple con los requisitos.</small>
+                                  <div class="invalid-feedback">
+                                  </div>
+                              </div>
                               <div data-mdb-input-init class="form-outline">
-                                  <input required type="password" id="repetir_contraseña" class="form-control form-control-lg" name="repetir_contraseña" placeholder="Repita su contraseña" />
+                                <div style="position: relative; display: flex; align-items: center;">
+                                  <input required type="password" id="repetir_contraseña" class="form-control form-control-lg" name="repetir_contraseña" placeholder="Repita su contraseña" 
+                                  minlength="8" 
+                                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" required/>
                                   <i class='bx bx-show-alt' style="color: #fff;"></i>
+                                </div>
                                   <div class="invalid-feedback">
                                     Complete el campo
                                   </div>
-                                </div>
+                              </div>
                             </div>
-                          <label for="placeholder" style="font-style:italic; font: size 7px; color: gray"  >Incluya mayúsculas, minúsculas, números y signos</label>
+                          <small for="placeholder" style="font-style:italic; font: size 7px; color: gray"  >La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&).</small>
 
                             
                           <div class="mt-auto">
@@ -142,7 +151,22 @@ iconRepetirContraseña.addEventListener("click", e => {
 })
 </script>
 <script>
+//Validacion de contraseña
+const form = document.getElementById('registerUser3');
+  const passwordInput = document.getElementById('contraseña');
+  const passwordError = document.getElementById('passwordError');
+  
+  form.addEventListener('submit', function(e) {
+    const password = passwordInput.value;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+    if (!regex.test(contraseña)) {
+      e.preventDefault(); // Evita el envío del formulario
+      passwordError.style.display = 'block';
+    } else {
+      passwordError.style.display = 'none';
+    }
+  });
 // Example starter JavaScript for disabling form submissions if there are invalid fields
 (function () {
   'use strict'
