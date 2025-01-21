@@ -20,22 +20,12 @@
 {%endblock %}
 
 {% block body %}
-
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/flashed.css')}}">
 <body>
     <form class="needs-validation" novalidate id="registerUser2" name="form-registerUser2" action="{{ url_for('registerUser2') }}" method="POST" autocomplete="off">
     
-            {% with messages = get_flashed_messages()  %}
-            {% if messages %}
-          {% for message in messages %}
-          <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {% endfor %}
-          {% endif %}
-          {% endwith %}
+            
+
 
           <section class="vh-100 d-flex justify-content-center align-items-center" 
             style="background: url('/static/assets/img/fondo7.jpg') no-repeat center center; background-size: cover;">
@@ -51,7 +41,17 @@
                           
                           <div class="card-body p-4 p-lg-5 text-white">
 
-                            
+                            {% with messages = get_flashed_messages()  %}
+                            {% if messages %}
+                          {% for message in messages %}
+                          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                            </button>
+                          </div>
+                          {% endfor %}
+                          {% endif %}
+                          {% endwith %}
                                   
           
                             <div class="d-flex align-items-center mb-3 pb-1">
@@ -65,9 +65,13 @@
 
                             <div data-mdb-input-init class="form-outline">
                                 <label for="usuario" class="form-label">Usuario</label>
-                                <input id="usuario" type="text" name="usuario" class="form-control" required>
+                                <input id="usuario" type="text" name="usuario" class="form-control"minlength="5" 
+                                maxlength="20" 
+                                pattern="[A-Za-z0-9]+"
+                                title="El usuario debe tener al menso 5 caracteres" 
+                                required>
                                 <div class="invalid-feedback">
-                                  Ingrese un usuario
+                                  Ingrese un usuario de al menos 5 caracteres
                                 </div>
                             </div>
                             

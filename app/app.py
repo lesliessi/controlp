@@ -1,5 +1,5 @@
 #Importando  flask y algunos paquetes
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint, get_flashed_messages
 from datetime import date
 from datetime import datetime
 
@@ -39,14 +39,15 @@ def loginUser():
             cursor.execute (SQLlogin,VALlogin)
             account = cursor.fetchone()
             cursor.close()
-            SQLlogin2 = "SELECT rol.codigo_rol FROM rol JOIN usuario_tiene_rol utr ON rol.codigo_rol =  utr.codigo_rol JOIN usuario u ON u.codigo_usuario = utr.codigo_usuario WHERE u.codigo_usuario = %s"
-            VALlogin2 = [(account['codigo_usuario'])]
-            cursor = conexion_MySQLdb.cursor(dictionary=True)
-            cursor.execute (SQLlogin2,VALlogin2)
-            account2 = cursor.fetchone()
-            cursor.close()
+            
 
             if account:   
+                SQLlogin2 = "SELECT rol.codigo_rol FROM rol JOIN usuario_tiene_rol utr ON rol.codigo_rol =  utr.codigo_rol JOIN usuario u ON u.codigo_usuario = utr.codigo_usuario WHERE u.codigo_usuario = %s"
+                VALlogin2 = [(account['codigo_usuario'])]
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute (SQLlogin2,VALlogin2)
+                account2 = cursor.fetchone()
+                cursor.close()
                 # Obtener el hash almacenado y comparar con la contraseña ingresada
                 hashed_password_db = account['contraseña']
                 if bcrypt.checkpw(contraseña.encode('utf-8'), hashed_password_db):  # <-- Aquí se agrega la comparación                  
@@ -94,7 +95,9 @@ def loginUser():
                     flash ('Datos incorrectos, por favor verifique.')
                 return render_template('login/login.html', msjAlert = msg, typeAlert=0)
             else:
+                flash ('Datos incorrectos, por favor verifique')
                 return render_template('login/login.html', msjAlert = 'inicia sesión', typeAlert=0)
+    flash ('Debe iniciar sesión')
     return render_template('login/login.html', msjAlert = 'Debe iniciar sesión.', typeAlert=0)
            
  # Función para hashear la contraseña
@@ -108,7 +111,7 @@ def hash_contraseña(contraseña):
 def dashboard():
     # Verificar si el usuario está conectado
     if 'conectado' not in session:
-        return redirect(url_for('login'))  # Redirigir al login si no está conectado
+        return redirect(url_for('loginUser'))  # Redirigir al login si no está conectado
 
     # Asegurarse de que la última sesión se obtiene correctamente
     ultima_sesion = obtener_ultima_sesion_anterior(session['codigo_usuario'])
@@ -208,8 +211,12 @@ def registerUser():
         if account1:
             flash ('Ya existe un usuario con esta cédula.')
 
+
         else:
             return redirect (url_for('registerUser2'))
+        
+        print(get_flashed_messages())  # Asegúrate de importar `get_flashed_messages`
+    
 
     return render_template('login/registerUser.html', msjAlert = msg, typeAlert=0)
 
@@ -310,7 +317,8 @@ def registerUser3():
                 # Limpiar sesión al completar el registro exitoso
                 session.clear()
                     
-            
+                flash ('Usuario registrado exitosamente.')
+
                 return render_template('login/login.html', msjAlert = msg, typeAlert=1)
             
             except Exception as e:
@@ -674,7 +682,6 @@ def recuperarContraseña():
             # Si el usuario existe, comparamos la pregunta de seguridad
             if account['pregunta_seguridad'] == pregunta_seguridad:
                 # Las respuestas a la preguntas de seguridad o la pregunta, coinciden, redireccionar al cambio de contraseña
-                flash ('Ha respondido correctamente')
                 return redirect(url_for('cambiarContraseña', usuario=usuario))
             else:
                 # Las respuestas no coinciden
@@ -709,7 +716,7 @@ def cambiarContraseña(usuario):
             cursor.execute("UPDATE usuario SET contraseña = %s WHERE codigo_usuario = %s", (hashed, codigo_usuario))            
             conexion_MySQLdb.commit()
             cursor.close()
-            flash ('Contrseña cambiada exitosamente')
+            flash ('Contraseña actualizada exitosamente')
             return render_template ('login/login.html')
     # ...
     return render_template('login/cambiarContraseña.html', usuario=usuario)

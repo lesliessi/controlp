@@ -56,6 +56,7 @@ section {
   border-width: 2px;
   background: transparent;
   width: 100%;
+  padding-right: 40px;
 }
 
 .col-md-6.col-lg-5 {
@@ -95,4 +96,14 @@ input::placeholder, textarea::placeholder {
   position: relative;  /* Esto permite posicionar elementos dentro de este contenedor */
   width: 100%;
 
+}
+
+
+/* Ajustes para el campo de validación (solo si es necesario) */
+#contraseña:valid ~ .valid-feedback,
+#contraseña:invalid ~ .invalid-feedback {
+  position: absolute;
+  top: 50%;
+  right: 50px; /* Ajusta más hacia la izquierda del ícono */
+  transform: translateY(-50%);
 }
