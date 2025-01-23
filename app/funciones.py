@@ -43,7 +43,7 @@ def listaTecnicos():
 def listaServicios():
     conexion_MySQLdb = connectionBD() #Hago instancia a mi conexion desde la funcion
     mycursor       = conexion_MySQLdb.cursor(dictionary=True)
-    cSQL= ("SELECT servicio.tipo, servicio.descripcion FROM servicio")
+    cSQL= ("SELECT * FROM servicio")
     mycursor.execute(cSQL)
     servicios= mycursor.fetchall() #fetchall () Obtener todos los registros
     mycursor.close()#cerrrando conexion SQL

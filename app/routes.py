@@ -159,7 +159,7 @@ def verRegistrosClientes():
 def verRegistrosPedidos():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor ()
-    cursor.execute ("SELECT pedido.codigo_pedido, pedido.cedula_empleado, pedido.precio, persona.cedula, persona.nombre, persona.apellido, persona.telefono, cliente_realiza_pedido.fecha_pedido FROM pedido INNER JOIN cliente_realiza_pedido ON pedido.codigo_pedido = cliente_realiza_pedido.codigo_pedido INNER JOIN cliente ON cliente_realiza_pedido.cedula = cliente.cedula INNER JOIN persona ON cliente.cedula = persona.cedula")
+    cursor.execute ("SELECT pedido.codigo_pedido, pedido.cedula_empleado, pedido.precio, persona.cedula, persona.nombre, persona.apellido, persona.telefono, cliente_realiza_pedido.fecha_pedido, servicio.descripcion, servicio.codigo_servicio FROM servicio JOIN pedido_corresponde_a_servicio pcs ON servicio.codigo_servicio = pcs.codigo_servicio JOIN pedido ON pedido.codigo_pedido = pcs.codigo_pedido INNER JOIN cliente_realiza_pedido ON pedido.codigo_pedido = cliente_realiza_pedido.codigo_pedido INNER JOIN cliente ON cliente_realiza_pedido.cedula = cliente.cedula INNER JOIN persona ON cliente.cedula = persona.cedula")
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []

@@ -155,7 +155,7 @@
                   <td>{{d.telefono}}</td>
                   <td>{{d.codigo_pedido}}</td>
                   <td>{{d.cedula_empleado}}</td>
-                  <td>{{d.servicio}}</td>
+                  <td>{{d.descripcion}}</td>
                   <td>{{d.precio}}</td>
                   <td>{{d.fecha_pedido}}</td>
                   <td><button class="btn btn-primary btn-sm" id="btn-edit{{d.cedula}}" data-bs-toggle="modal" data-bs-target="#modal{{d.cedula}}">Editar</button></td>
@@ -182,11 +182,11 @@
                             <label>Teléfono</label>
                             <input type="text" class="form-control mb-3" name="telefono" value="{{d.telefono}}">
                             <label>Código de pedido</label>
-                            <input type="text" class="form-control mb-3" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly onmousedown="return false;">
+                            <input type="text" class="form-control mb-3" name="codigo_pedido" value="{{d.codigo_pedido}}" >
                             <label>Cédula del empleado</label>
                             <input type="text" class="form-control mb-3" name="cedula_empleado" value="{{d.cedula_empleado}}">
                             <label>Servicio</label>
-                            <input type="text" class="form-control mb-3" name="servicio" value="{{d.servicio}}">
+                            <input type="text" class="form-control mb-3" name="servicio" value="{{d.descripcion}}">
                             <label>Precio</label>
                             <input type="text" class="form-control mb-3" name="precio" value="{{d.precio}}">
                             <label>Fecha</label>
