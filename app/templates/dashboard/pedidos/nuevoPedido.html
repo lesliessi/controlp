@@ -151,7 +151,7 @@
             <div class="col-md-6">
                 <label for="servicio" class="form-label mt-1">Servicio</label>
                 <select name="servicio" class="form-control" required>
-                  <option value="0" selected="selected">--- Seleccione ---</option>
+                  <option value="0" disabled selected="selected">--- Seleccione ---</option>
                   {% for c in dataServicios %}
                   <option value="{{ c.codigo_servicio}}">{{c.descripcion}}</option>
                   {% endfor %}

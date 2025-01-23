@@ -431,10 +431,25 @@ def nuevoPedido():
         if 'conectado' in session:
             if request.method == 'POST':
                     cliente                       = request.form['cliente']
-                    servicio                      = request.form['servicio']
+                    codigo_servicio                      = request.form['servicio'].strip()
                     tecnico                       = request.form['tecnico']
                     precio                        = request.form['precio']
                     fecha                         =request.form['fecha']
+
+                    # Validar que codigo_servicio no sea vacío o "0"
+                    if not codigo_servicio or codigo_servicio == "0":
+                        flash('Por favor, selecciona un servicio válido.')
+                        return render_template(
+                        'dashboard/pedidos/nuevoPedido.html',
+                        msjAlert='Por favor, selecciona un servicio válido.',
+                        typeAlert=1,
+                        dataClientes=listaClientes(),
+                        dataTecnicos=listaTecnicos(),
+                        dataServicios=listaServicios()
+                        )
+
+                    codigo_servicio = int(codigo_servicio)
+                    print (codigo_servicio)
 
                     #current_time = datetime.datetime.now()
 
@@ -452,13 +467,10 @@ def nuevoPedido():
                     conexion_MySQLdb.commit()
                     cursor.close()
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute("SELECT codigo_servicio FROM servicio WHERE descripcion= %s", [(servicio)])
-                    codigo_servicio = cursor.fetchone()
-                    conexion_MySQLdb.commit()
-                    cursor.close()
+                    
                     # Insertar en la tabla pedido_corresponde_a_servicio
                     SQL2 = "INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES ((SELECT MAX(codigo_pedido) FROM pedido), %s)"
-                    val2 = (codigo_servicio,)
+                    val2 = [(codigo_servicio)]
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL2, val2)
                     conexion_MySQLdb.commit()

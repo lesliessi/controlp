@@ -17,6 +17,8 @@
     <!-- Bootstrap core CSS -->
 {% block customeCSS %}
 <link rel="stylesheet" href="{{url_for('static', filename='assets/css/dashboard.css')}}">
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
 {%endblock %}
 
 <!-- scripts -->
@@ -47,23 +49,14 @@
 <!--Menu superior horizontal-->
 
 <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  {% with messages = get_flashed_messages()  %}
-  {% if messages %}
-{% for message in messages %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
+
   <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="{{url_for('perfil')}}">Perfil</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="navbar-nav">
+    <i class='bx bxs-user-circle'></i>
+
     <div class="nav-item text-nowrap">
       <a class="nav-link px-3" href="{{url_for('logout')}}">Cerrar sesión</a>
     </div>
@@ -72,7 +65,18 @@
     </div>
   </div>
 </header>
-
+{% with messages = get_flashed_messages()  %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+{{ message }}
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+  <span aria-hidden="true">&times;</span>
+</button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 <!---Menu lateral-->
 
 <div class="container-fluid"
