@@ -1,0 +1,279 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+
+
+<!---Boostrap--->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+    <!-- Bootstrap core CSS -->
+{% block customeCSS %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+
+{%endblock %}
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- scripts -->
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+      .dropdown-container {
+  display: none; /* Oculto por defecto */
+  padding-left: 20px; /* Espaciado opcional */
+}
+
+.dropdown-container a{
+  display: block;
+  padding: 5px 0;
+  text-decoration: none;
+  color: #fff !important;;
+  background-color: transparent; /* Fondo transparente inicialmente */
+  transition: all 0.3s ease; /* Animación suave para el cambio de color */
+  width: 100%;
+}
+.dropdown{
+  margin-bottom: 15px;
+
+}
+
+.dropdown-container a:hover {
+  color: #000 !important;
+  background-color: #e9ecef; /* Fondo claro al resaltar */
+
+}
+
+.dropdown-container.open {
+  display: block; /* Mostrar cuando esté abierto */
+}
+
+.nav-item {
+  transition: all 0.3s ease-in-out; /* Animación suave para reposicionar elementos */
+}
+
+.form-row {
+  display: flex; /* Utiliza Flexbox */
+  gap: 10px;     /* Espacio entre los dos campos */
+  margin-bottom: 5px
+}
+.input {
+            background-color: white;
+            border: 3px solid  #fff 003366;
+            border-radius: 25px;
+            padding: 8px 12px;
+            font-size: 16px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.3s ease;
+            width: 300px;
+            align-self: flex-start; /* Alinea el elemento a la izquierda */
+            margin-bottom: 15px;
+          }
+        
+/* Grupos de campos */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Etiquetas */
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+.btn{
+  border-radius: 25px;
+}
+
+    </style>
+
+
+  <body>
+
+  <div class="d-flex" >
+
+
+
+
+
+<!---Menu lateral-->
+
+{% block sidebar %}          {% endblock %}
+
+    <nav id="sidebarMenu" class="col-md- d-md-block sidebar collapse" 
+      style="background-color: #1b203e; height: 100vh; position: fixed; overflow-y: auto; width: 300px; padding-left: 20px;">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+
+
+          <li class="nav-item" style="margin-bottom: 20px;">
+            <a class="h1 fw-bold mb-0 nav-link " href="{{url_for('dashboard')}}" style="color: white; " >Control+P
+            </a>
+            
+          </li>
+
+
+          <div class="nav-item text-nowrap">
+            <div class="dropdown">
+                <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+                  style="height: 40px; display: flex; align-items: center; padding-right: 10px;" 
+                  onclick="toggleDropdown('empleadosDropdown')"> 
+                  <i class="bx bxs-user-badge" style="color: #fff; font-size: 30px;"></i>
+                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Empleados</i>
+                </a>
+                <div id="empleadosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosEmpleados')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarEmpleado')}}">Registrar</a>
+               </div>
+            </div>
+          </div>
+     
+          <div class="nav-item text-nowrap">
+            <div class="dropdown">
+                <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+                  style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
+                  onclick="toggleDropdown('clientesDropdown')"> 
+                  <i class="bx bxs-user-badge" style="color: #fff; font-size: 30px;"></i>
+                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Clientes</i>
+                </a>
+                <div id="clientesDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosClientes')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarCliente')}}">Registrar</a>
+               </div>
+            </div>
+          </div>
+
+
+          <div class="nav-item text-nowrap">
+            <div class="dropdown">
+                <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+                  style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
+                  onclick="toggleDropdown('pedidosDropdown')"> 
+                  <i class="bx bxs-file" style="color: #fff; font-size: 30px;"></i>
+                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Pedidos</i>
+                </a>
+                <div id="pedidosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosPedidos')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('nuevoPedido')}}">Registrar</a>
+               </div>
+            </div>
+          </div>
+
+          <div class="nav-item text-nowrap">
+            <div class="dropdown">
+                <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+                  style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
+                  onclick="toggleDropdown('serviciosDropdown')"> 
+                  <i class="bx bxs-cog" style="color: #fff; font-size: 30px;"></i>
+                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Servicios</i>
+                </a>
+                <div id="serviciosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosServicios')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarServicio')}}">Registrar</a>
+               </div>
+            </div>
+          </div>
+            
+
+           
+
+    </nav>
+
+<div class="main-content" style="margin-left: 300px; width: calc(100%);">
+
+<!--Menu superior horizontal-->
+
+
+<header class="navbar navbar-dark sticky-top flex-md-nowrap shadow " 
+    style="height: 70px; display: flex; align-items: center; background-color: #fff; width: calc(100%);" >
+
+
+  <div class="navbar-nav ms-auto"  >
+  
+    <div class="nav-item text-nowrap">
+      <div class="dropdown">
+          <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+            style="height: 40px; display: flex; align-items: center; padding-right: 10px; "> 
+            <i style="color: #1b203e; font-size: 20px; font-style: normal; padding-right: 3px;">{{ session['usuario'] }}</i>
+            <i class='bx bxs-user-circle' style="color: #1b203e; font-size: 50px;"> </i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end mt-2 " style="margin-top: 10px; position: absolute; z-index: 1050;  " aria-labelledby="dropdownMenuButton">
+            <!---<a class="dropdown-item" href="{{url_for('perfil')}}">Perfil</a>--->
+            <a class="dropdown-item" href="{{url_for('logout')}}">Cerrar sesión</a>
+         </div>
+      </div>
+    </div>
+    
+  </div>
+</header>
+
+
+{% with messages = get_flashed_messages()  %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+{{ message }}
+<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+</button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% block content %} {% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"> </script>
+<script>
+  function toggleDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  const isVisible = dropdown.style.display === "block";
+
+  // Ocultar todos los dropdowns
+  document.querySelectorAll('.dropdown-container').forEach(container => {
+    container.style.display = "none";
+    container.classList.remove('open');
+  });
+
+  // Mostrar o cerrar el dropdown actual
+  if (!isVisible) {
+    dropdown.style.display = "block";
+    dropdown.classList.add('open');
+  }
+}
+
+</script>
+</body>
+
+</html>

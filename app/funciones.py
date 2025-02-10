@@ -80,15 +80,11 @@ def obtener_ultima_sesion_anterior(codigo_usuario):
 
         query=("""SELECT h.ultima_sesion
                 FROM historial h
-                JOIN usuario_genera_historial ugh ON ugh.codigo_historial = h.codigo_historial
-                JOIN usuario u ON ugh.codigo_usuario = u.codigo_usuario
-                WHERE u.codigo_usuario = %s
+                WHERE codigo_usuario = %s
                 AND h.codigo_historial < (
                     SELECT MAX(h2.codigo_historial)
                     FROM historial h2
-                    JOIN usuario_genera_historial ugh2 ON ugh2.codigo_historial = h2.codigo_historial
-                    JOIN usuario u2 ON ugh2.codigo_usuario = u2.codigo_usuario
-                    WHERE u2.codigo_usuario = %s
+                    WHERE h2.codigo_usuario = %s
                 )
                 ORDER BY h.ultima_sesion DESC
                 LIMIT 1;""")
@@ -107,7 +103,25 @@ def obtener_ultima_sesion_anterior(codigo_usuario):
         return None
 
 
-        
+def listaEstados():
+    conexion_MySQLdb = connectionBD() #Hago instancia a mi conexion desde la funcion
+    mycursor       = conexion_MySQLdb.cursor(dictionary=True)
+    querySQL  = ("SELECT * FROM estado")
+    mycursor.execute(querySQL)
+    estados = mycursor.fetchall() #fetchall () Obtener todos los registros
+    mycursor.close() #cerrrando conexion SQL
+    conexion_MySQLdb.close() #cerrando conexion de la BD
+    return estados
+
+def listaCiudades():
+    conexion_MySQLdb = connectionBD() #Hago instancia a mi conexion desde la funcion
+    mycursor       = conexion_MySQLdb.cursor(dictionary=True)
+    querySQL  = ("SELECT * FROM ciudad")
+    mycursor.execute(querySQL)
+    ciudad = mycursor.fetchall() #fetchall () Obtener todos los registros
+    mycursor.close() #cerrrando conexion SQL
+    conexion_MySQLdb.close() #cerrando conexion de la BD
+    return ciudad       
 
 
 
