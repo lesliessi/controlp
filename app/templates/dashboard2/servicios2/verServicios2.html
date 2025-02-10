@@ -1,0 +1,62 @@
+<title>Servicios registrados</title>
+
+{% extends "dashboard/basemenu.html" %}
+
+{% block title %}Servicios registrados{% endblock %}
+
+
+
+{% block sidebar %}{% endblock %}
+
+
+
+{% block content %} 
+    <main class="px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Servicios registrados</h1>
+        <button type="button" href="#" class="btn btn-light">Exportar PDF</button>
+      
+  </div>
+ 
+        <!---Tabla-->
+        <div class=container>
+
+          <table class="table table bordered">
+              <thead>
+                  <th scope="col">Código de servicio</th>
+                  <th scope="col">Tipo de servicio</th>
+                  <th scope="col">Descripción</th> 
+  
+                </thead>
+          
+          <tbody>
+            {% for d in data %}
+              <tr>
+                  <td>{{d.codigo_servicio}}</td>
+                  <td>{{d.tipo}}</td>
+                  <td>{{d.descripcion}}</td>
+                  
+                </tr>
+  
+                
+                  {% endfor %}
+  
+  
+                </tbody>
+        
+              </table>
+            </div>
+        
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      </body>
+      
+      {% endblock %}
+      </html>

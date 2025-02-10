@@ -1,0 +1,102 @@
+#pedidos-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Más espacio entre tarjetas */
+}
+
+.pedido-item {
+    width: 95%;
+    padding: 20px;
+    border: 1px solid #e0e0e0; /* Borde más sutil */
+    
+    background-color: white;
+    border-radius: 12px; /* Esquinas más redondeadas */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Transición suave */
+}
+
+.pedido-item:hover {
+    transform: translateY(-5px); /* Efecto de levantar la tarjeta al pasar el mouse */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* Sombra más intensa al hover */
+}
+
+.pedido-info {
+    flex-grow: 1;
+}
+
+.pedido-info div {
+    margin: 8px 0; /* Espaciado más generoso */
+    font-size: 14px;
+    color: #333; /* Color de texto más oscuro */
+}
+
+.pedido-info strong {
+    color: #555; /* Color más suave para las etiquetas */
+}
+
+.botones {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+    
+}
+.btn{
+border-radius: 25px;
+}
+.boton {
+    width: 40px;
+    height: 40px; /* Botones más grandes */
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease; /* Transición suave */
+}
+
+
+.boton.azul:hover {
+    background-color: #0056b3; /* Azul más oscuro al hover */
+    transform: scale(1.05); /* Efecto de escala al hover */
+}
+
+
+
+.boton.rojo:hover {
+    background-color: #a71d2a; /* Rojo más oscuro al hover */
+    transform: scale(1.05); /* Efecto de escala al hover */
+}
+
+
+.boton-con-icono {
+    position: relative; /* Permite posicionar el icono sobre el botón */
+    display: inline-flex; /* Usa Flexbox para alinear el botón y el icono */
+    align-items: center; /* Centra verticalmente */
+    justify-content: center; /* Centra horizontalmente */
+}
+.boton.toggle { 
+    background-color: #87CEEB ; /* Fondo claro */
+    border: 1px solid #87CEEB ;
+    position: flex;
+    cursor: pointer;
+}
+
+.bx-right-arrow-alt {
+    position: absolute; /* Posiciona el icono sobre el botón */
+    font-size: 24px; /* Tamaño del icono */
+    color: #333; /* Color del icono */
+    pointer-events: none; /* Evita que el icono interfiera con los clics del botón */
+}
+
+.boton.toggle:hover {
+    background-color: #e9ecef; /* Fondo más oscuro al hover */
+}

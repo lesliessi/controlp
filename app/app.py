@@ -42,14 +42,14 @@ def loginUser():
             
 
             if account:   
-                SQLlogin2 = "SELECT rol.codigo_rol FROM rol JOIN usuario_tiene_rol utr ON rol.codigo_rol =  utr.codigo_rol JOIN usuario u ON u.codigo_usuario = utr.codigo_usuario WHERE u.codigo_usuario = %s"
+                SQLlogin2 = "SELECT rol.codigo_rol FROM rol JOIN usuario u ON rol.codigo_rol =  u.codigo_rol WHERE u.codigo_usuario = %s"
                 VALlogin2 = [(account['codigo_usuario'])]
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
                 cursor.execute (SQLlogin2,VALlogin2)
                 account2 = cursor.fetchone()
                 cursor.close()
                 # Obtener el hash almacenado y comparar con la contraseña ingresada
-                hashed_password_db = account['contraseña']
+                hashed_password_db = account['contraseña'].encode('utf-8')
                 if bcrypt.checkpw(contraseña.encode('utf-8'), hashed_password_db):  # <-- Aquí se agrega la comparación                  
                 # Crear datos de sesión, para poder acceder a estos datos en otras rutas 
                     session['conectado']           = True
@@ -158,20 +158,10 @@ def historialDeSesion(codigo_usuario):
         ahora = datetime.now()
         conexion_MySQLdb = connectionBD()
         cursor=conexion_MySQLdb.cursor()
-        cursor.execute("INSERT INTO historial (ultima_sesion) VALUES (%s)", (ahora,))
+        cursor.execute("INSERT INTO historial (ultima_sesion, codigo_usuario) VALUES (%s, %s)", (ahora, codigo_usuario))
         conexion_MySQLdb.commit()
 
-        # Obtener el código del historial recién insertado
-        codigo_historial = cursor.lastrowid
-        cursor.close ()
-
-        
-        # Paso 2: Relacionar el usuario con el historial
-        conexion_MySQLdb = connectionBD()
-        cursor=conexion_MySQLdb.cursor()
-        cursor.execute("INSERT INTO usuario_genera_historial (codigo_usuario, codigo_historial) VALUES (%s, %s)", (codigo_usuario, codigo_historial))
-        conexion_MySQLdb.commit()  # Confirmar los cambios
-
+       
         cursor.close ()
     
         
@@ -191,14 +181,18 @@ def registerUser():
         cedula                       = request.form['cedula']
         nombre                      = request.form['nombre']
         apellido                    = request.form['apellido']
-        telefono                    = request.form['telefono']
+        prefijo_telefonico          = request.form.get('prefijo_telefonico')
+        numero                    = request.form['numero']
         tipo                        = request.form['tipo']
         cargo                       =request.form['cargo']
+
+        print(prefijo_telefonico)
 
         session ['cedula']=cedula
         session ['nombre']=nombre
         session ['apellido']=apellido
-        session ['telefono']=telefono
+        session ['prefijo_telefonico']=prefijo_telefonico
+        session ['numero']=numero
         session ['cargo']=cargo
         session ['tipo']=tipo
         
@@ -264,7 +258,8 @@ def registerUser3():
         cedula = session.get ('cedula')
         nombre = session.get ('nombre')
         apellido = session.get ('apellido')
-        telefono = session.get ('telefono')
+        prefijo_telefonico = session.get ('prefijo_telefonico')
+        numero= session.get ('numero')
         tipo = session.get ('tipo')
         cargo = session.get ('cargo')
         usuario = session.get ('usuario')       
@@ -287,8 +282,8 @@ def registerUser3():
             print(hashed)
             try:
                 conexion_MySQLdb = connectionBD()
-                SQL= "INSERT INTO persona (cedula, nombre, apellido, telefono) VALUES (%s, %s, %s, %s)" 
-                val= (cedula, nombre, apellido, telefono)
+                SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
+                val= (cedula, nombre, apellido)
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
                 cursor.execute (SQL, val)
                 conexion_MySQLdb.commit()
@@ -299,15 +294,16 @@ def registerUser3():
                 cursor.execute (SQL1, val1)
                 conexion_MySQLdb.commit()
                 cursor.close()
-                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad) VALUES (%s, %s, %s, %s)"
-                val2= (cedula, usuario, hashed, pregunta_seguridad)
+                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol) VALUES (%s, %s, %s, %s, %s)"
+                val2= (cedula, usuario, hashed, pregunta_seguridad, '2')
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
                 cursor.execute (SQL2, val2)
                 conexion_MySQLdb.commit()
                 cursor.close()
-                SQL3= "INSERT INTO usuario_tiene_rol (codigo_rol, codigo_usuario) VALUES (2,(SELECT MAX(codigo_usuario) FROM usuario))"
+                SQL3="INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
+                val3= (prefijo_telefonico, numero, cedula)
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL3)
+                cursor.execute (SQL3, val3)
                 conexion_MySQLdb.commit()
                 cursor.close()
 
@@ -348,16 +344,23 @@ def registrarEmpleado():
                     cedula                       = request.form['cedula']
                     nombre                      = request.form['nombre']
                     apellido                    = request.form['apellido']
-                    telefono                    = request.form['telefono']
+                    prefijo_telefonico                    = request.form['prefijo_telefonico']
+                    numero                        = request.form['numero']
                     tipo                        = request.form['tipo']
                     cargo                       =request.form['cargo']
                     #current_time = datetime.datetime.now()
 
                     conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO persona (cedula, nombre, apellido, telefono) VALUES (%s, %s, %s, %s)" 
-                    val= (cedula, nombre, apellido, telefono)
+                    SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
+                    val= (cedula, nombre, apellido)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL, val)
+                    conexion_MySQLdb.commit()
+                    cursor.close()
+                    SQL2= "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)" 
+                    val2= (prefijo_telefonico, numero, cedula)
+                    cursor = conexion_MySQLdb.cursor(dictionary=True)
+                    cursor.execute (SQL2, val2)
                     conexion_MySQLdb.commit()
                     cursor.close()
                     SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
@@ -368,9 +371,10 @@ def registrarEmpleado():
                     flash ('Empleado registrado correctamente.')
                     cursor.close()
                     
-            return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+            return redirect(url_for('verRegistrosEmpleados'))
     
         return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+
 
 @app.route('/registrar-cliente', methods=['GET', 'POST'])
 def registrarCliente():
@@ -382,22 +386,30 @@ def registrarCliente():
                     cedula                       = request.form['cedula']
                     nombre                      = request.form['nombre']
                     apellido                    = request.form['apellido']
-                    telefono                    = request.form['telefono']
+                    prefijo_telefonico                    = request.form['prefijo_telefonico']
+                    numero                        = request.form['numero']
                     calle                       = request.form ['calle']
                     sector                       = request.form ['sector']
                     numero_casa                  = request.form ['numero_casa']
-                    municipio                   = request.form ['municipio']
+                    ciudad                   = request.form ['ciudad']
                     estado                     = request.form ['estado']
+                    print(estado)
 
 
 
                     #current_time = datetime.datetime.now()
 
                     conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO persona (cedula, nombre, apellido, telefono) VALUES (%s, %s, %s, %s)" 
-                    val= (cedula, nombre, apellido, telefono)
+                    SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
+                    val= (cedula, nombre, apellido)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL, val)
+                    conexion_MySQLdb.commit()
+                    cursor.close()
+                    SQL4= "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)" 
+                    val4= (prefijo_telefonico, numero, cedula)
+                    cursor = conexion_MySQLdb.cursor(dictionary=True)
+                    cursor.execute (SQL4, val4)
                     conexion_MySQLdb.commit()
                     cursor.close()
                     SQL1= "INSERT INTO cliente (cedula) VALUES (%s)"
@@ -406,23 +418,77 @@ def registrarCliente():
                     cursor.execute (SQL1, val1)
                     conexion_MySQLdb.commit()
                     cursor.close()
-                    SQL2= "INSERT INTO direccion (calle, sector, numero_casa, municipio, estado) VALUES (%s, %s, %s, %s, %s)"
-                    val2= (calle, sector, numero_casa, municipio, estado)
+                    SQL2= "INSERT INTO direccion (calle, sector, numero_casa, cedula, codigo_ciudad) VALUES (%s, %s, %s, %s, %s)"
+                    val2= (calle, sector, numero_casa, cedula, ciudad)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL2, val2)
                     conexion_MySQLdb.commit()
                     cursor.close()
-                    SQL3= "INSERT INTO persona_tiene_direccion (codigo_direccion, cedula) VALUES ((SELECT MAX(codigo_direccion) FROM direccion), %s)"
-                    Val3=[(cedula)]
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL3, Val3)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
                     flash ('Cliente registrado correctamente.')
-            return render_template('dashboard/clientes/registroCliente.html', msjAlert = msg, typeAlert=0)
+                    return redirect(url_for('verRegistrosClientes'))
 
-        return render_template('dashboard/clientes/registroCliente.html')
+            return render_template('dashboard/clientes/registroCliente.html', msjAlert = msg, typeAlert=0, estados=listaEstados())
 
+        return render_template('dashboard/clientes/registroCliente.html', estados=listaEstados())
+
+@app.route('/get_ciudades', methods=['GET'])
+def get_ciudades():
+    conexion_MySQLdb = connectionBD()
+    estado_id = request.args.get('estado_id')
+
+    if not estado_id:
+        return jsonify({"error": "Estado ID requerido"}), 400
+
+    try:
+        with conexion_MySQLdb.cursor() as cursor:
+            sql = "SELECT codigo_ciudad, nombre_ciudad FROM ciudad WHERE codigo_estado = %s"
+            cursor.execute(sql, (estado_id,))
+            ciudades = cursor.fetchall()
+
+            # Formatear la respuesta como un array de objetos
+        ciudades_lista = []
+        for ciudad in ciudades:
+            ciudades_lista.append({
+                "codigo_ciudad": ciudad[0],  # Acceder por índice
+                "nombre_ciudad": ciudad[1],   # Acceder por índice
+            })
+
+        return jsonify(ciudades_lista)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_direccion', methods=['GET'])
+def get_direccion():
+    conexion_MySQLdb = connectionBD()
+    cliente_id = request.args.get('cliente_id')
+
+    if not cliente_id:
+        return jsonify({"error": "Cliente ID requerido"}), 400
+
+    try:
+        with conexion_MySQLdb.cursor() as cursor:
+            sql = """SELECT d.calle, d.sector, d.numero_casa as 'casa n° ', cd.nombre_ciudad, ed.nombre_estado
+FROM direccion d  
+JOIN ciudad cd ON cd.codigo_ciudad=d.codigo_ciudad
+JOIN estado ed ON ed.codigo_estado = cd.codigo_estado
+WHERE d.cedula = %s"""
+            cursor.execute(sql, (cliente_id,))
+            cliente = cursor.fetchall()
+
+          
+        if cliente:
+            direccion = cliente[0]
+
+           
+
+            return jsonify({"direccion": direccion})
+        else:
+            return jsonify({"direccion": "<em>No se encontró dirección.</em>"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/nuevo-pedido', methods=['GET', 'POST'])
 def nuevoPedido():
         msg = ''
@@ -431,52 +497,32 @@ def nuevoPedido():
         if 'conectado' in session:
             if request.method == 'POST':
                     cliente                       = request.form['cliente']
-                    codigo_servicio                      = request.form['servicio'].strip()
                     tecnico                       = request.form['tecnico']
-                    precio                        = request.form['precio']
-                    fecha                         =request.form['fecha']
+                    fecha_pedido                         =request.form['fecha_pedido']
 
-                    # Validar que codigo_servicio no sea vacío o "0"
-                    if not codigo_servicio or codigo_servicio == "0":
-                        flash('Por favor, selecciona un servicio válido.')
-                        return render_template(
-                        'dashboard/pedidos/nuevoPedido.html',
-                        msjAlert='Por favor, selecciona un servicio válido.',
-                        typeAlert=1,
-                        dataClientes=listaClientes(),
-                        dataTecnicos=listaTecnicos(),
-                        dataServicios=listaServicios()
-                        )
+                    session['cliente']= cliente
 
-                    codigo_servicio = int(codigo_servicio)
-                    print (codigo_servicio)
+                    cedula_empleado_registra= session.get('cedula')
 
-                    #current_time = datetime.datetime.now()
 
                     conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO pedido (precio, cedula_empleado) VALUES (%s, %s)" 
-                    val= (precio, tecnico)
+                    SQL= "INSERT INTO pedido (cedula_cliente,fecha_pedido, cedula_empleado_registra,  cancelado) VALUES (%s, %s, %s, '0')" 
+                    val= (cliente,fecha_pedido, cedula_empleado_registra)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL, val)
                     conexion_MySQLdb.commit()
                     cursor.close()
-                    SQL1= "INSERT INTO cliente_realiza_pedido (codigo_pedido, cedula, fecha_pedido) VALUES ((SELECT MAX(codigo_pedido) FROM pedido), %s, %s)"
-                    val1= (cliente, fecha)
+                    SQL1= "INSERT INTO tecnico_atiende_pedido (codigo_pedido, cedula_tecnico) VALUES ((SELECT MAX(codigo_pedido) FROM pedido), %s)"
+                    val1= (tecnico,)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL1, val1)
                     conexion_MySQLdb.commit()
                     cursor.close()
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    
-                    # Insertar en la tabla pedido_corresponde_a_servicio
-                    SQL2 = "INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES ((SELECT MAX(codigo_pedido) FROM pedido), %s)"
-                    val2 = [(codigo_servicio)]
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL2, val2)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    flash ('Pedido registrado correctamente.')
-                    return render_template('dashboard/pedidos/nuevoPedido.html', msjAlert = msg, typeAlert=0, dataClientes=listaClientes(), dataTecnicos=listaTecnicos(), dataServicios=listaServicios())
+                            
+                            
+                    flash ('Pedido por atender registrado correctamente.')
+                    return redirect(url_for('verRegistrosPedidos'))
 
         return render_template('dashboard/pedidos/nuevoPedido.html', dataClientes=listaClientes(), dataTecnicos=listaTecnicos(), dataServicios=listaServicios())
 
@@ -500,7 +546,7 @@ def registrarServicio():
                     conexion_MySQLdb.commit()
                     cursor.close()
                     flash ('Servicio registrado correctamente.')
-                    return render_template('dashboard/servicios/servicios.html', msjAlert = msg, typeAlert=0)
+                    return redirect(url_for('verRegistrosServicios'))
 
         return render_template('dashboard/servicios/servicios.html')     
 
@@ -508,34 +554,44 @@ def registrarServicio():
 def delete(cedula):
     conexion_MySQLdb = connectionBD()
     cursor = conexion_MySQLdb.cursor()
-    sql = "DELETE FROM empleado WHERE cedula = %s"
+    sql = "DELETE FROM persona WHERE cedula = %s"
     data = (cedula,)
     cursor.execute(sql, data)
     flash ('Empleado removido exitosamente.')
     conexion_MySQLdb.commit()
     return redirect(url_for('verRegistrosEmpleados'))
 
+"""editar empleado"""
+
 @app.route('/edit/<string:cedula>', methods=['POST'])
 def edit(cedula):
     nombre   = request.form['nombre']
     apellido = request.form['apellido']
-    telefono = request.form['telefono']
+    prefijo_telefonico = request.form['prefijo_telefonico']
+    numero= request.form['numero']
     tipo     = request.form['tipo']
     cargo    = request.form['cargo']
-    
 
     if request.method== 'POST':
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
-        sql = "UPDATE persona SET nombre = %s, apellido = %s, telefono = %s WHERE cedula = %s"
-        data = (nombre, apellido, telefono, cedula)
+        sql = "UPDATE persona SET nombre = %s, apellido = %s WHERE cedula = %s"
+        data = (nombre, apellido, cedula)
         cursor.execute(sql, data)
         conexion_MySQLdb.commit()
         sql1= "UPDATE empleado SET tipo= %s, cargo = %s WHERE cedula = %s"
         data1= (tipo, cargo, cedula)
         cursor.execute(sql1, data1)
-        flash ('Datos actualizados correctamente.')
         conexion_MySQLdb.commit()
+        cursor.close()
+        sql3= "UPDATE telefono SET prefijo_telefonico=%s, numero= %s WHERE cedula = %s"
+        data3= (prefijo_telefonico, numero, cedula)
+        cursor = conexion_MySQLdb.cursor(dictionary=True)
+        cursor.execute(sql3, data3)
+        conexion_MySQLdb.commit()
+        cursor.close()
+        flash ('Datos actualizados correctamente.')
+
     return redirect(url_for('verRegistrosEmpleados'))
 
 @app.route('/editRolUsuario/<string:codigo_usuario>', methods=['POST'])
@@ -545,7 +601,7 @@ def editRolUsuario(codigo_usuario):
     if request.method== 'POST':
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
-        sql = "UPDATE usuario_tiene_rol SET codigo_rol = %s WHERE codigo_usuario = %s"
+        sql = "UPDATE usuario SET codigo_rol = %s WHERE codigo_usuario = %s"
         data = (codigo_rol, codigo_usuario,)
         cursor.execute(sql, data)
         conexion_MySQLdb.commit()
@@ -570,7 +626,7 @@ def deleteUsuario(codigo_usuario):
 def deleteCliente(cedula):
     conexion_MySQLdb = connectionBD()
     cursor = conexion_MySQLdb.cursor()
-    sql = "DELETE FROM cliente WHERE cedula = %s"
+    sql = "DELETE FROM ´persona WHERE cedula = %s"
     data = (cedula,)
     cursor.execute(sql, data)
     flash ('Cliente removido exitosamente.')
@@ -583,36 +639,41 @@ def editCliente(cedula):
     cedula              = request.form['cedula']
     nombre              = request.form['nombre']
     apellido            = request.form['apellido']
-    telefono            = request.form['telefono']
+    prefijo_telefonico  = request.form['prefijo_telefonico']
+    numero              = request.form['numero']
     codigo_direccion    = request.form['codigo_direccion']
     calle               = request.form['calle']
     sector              = request.form['sector']
     numero_casa         = request.form['numero_casa']
-    municipio           = request.form['municipio']
-    estado              = request.form['estado']
+    ciudad              = request.form['ciudad']
     
 
     if request.method== 'POST':
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
-        sql = "UPDATE persona SET nombre = %s, apellido = %s, telefono = %s WHERE cedula = %s"
-        data = (nombre, apellido, telefono, cedula)
+        sql = "UPDATE persona SET nombre = %s, apellido = %s WHERE cedula = %s"
+        data = (nombre, apellido, cedula)
         cursor.execute(sql, data)
         conexion_MySQLdb.commit()
-        sql1= "UPDATE direccion SET calle = %s, sector = %s, numero_casa = %s, municipio = %s, estado = %s WHERE codigo_direccion = %s"
-        data1= (calle, sector, numero_casa, municipio, estado, codigo_direccion)
+        sql1= "UPDATE direccion SET calle = %s, sector = %s, numero_casa = %s, codigo_ciudad = %s, cedula = %s WHERE codigo_direccion = %s"
+        data1= (calle, sector, numero_casa, ciudad, cedula, codigo_direccion)
         cursor.execute(sql1, data1)
-        flash ('Datos actualizados correctamente.')
         conexion_MySQLdb.commit()
+        sql2= "UPDATE telefono SET prefijo_telefonico = %s, numero = %s WHERE cedula = %s"
+        data2= (prefijo_telefonico, numero, cedula)
+        cursor.execute(sql2, data2)
+        conexion_MySQLdb.commit()
+        cursor.close()
+        flash ('Datos actualizados correctamente.')
     return redirect(url_for('verRegistrosClientes')) 
 
 
-@app.route('/deletePedido/<string:cedula>')
-def deletePedido(cedula):
+@app.route('/deletePedido/<string:codigo_pedido>')
+def deletePedido(codigo_pedido):
     conexion_MySQLdb = connectionBD()
     cursor = conexion_MySQLdb.cursor()
-    sql = "DELETE FROM cliente WHERE cedula = %s"
-    data = (cedula,)
+    sql = "DELETE FROM  pedido WHERE codigo_pedido = %s"
+    data = (codigo_pedido,)
     cursor.execute(sql, data)
     flash ('Pedido removido exitosamente.')
     conexion_MySQLdb.commit()
@@ -622,29 +683,80 @@ def deletePedido(cedula):
 def editPedido(cedula):
     
     
-    nombre              = request.form['nombre']
-    apellido            = request.form['apellido']
-    telefono            = request.form['telefono']
+    cliente              = request.form['cliente']
+    tecnico            = request.form['tecnico']
+    fecha_pedido        = request.form['fecha_pedido']
     codigo_pedido       = request.form['codigo_pedido']
-    cedula_empleado     = request.form['cedula_empleado']
-    servicio            = request.form['servicio']
-    precio              = request.form['precio']
     
 
     if request.method== 'POST':
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
-        sql = "UPDATE persona SET nombre = %s, apellido = %s, telefono = %s WHERE cedula = %s"
-        data = (nombre, apellido, telefono, cedula)
-        cursor.execute(sql, data)
-        conexion_MySQLdb.commit()
-        sql1= "UPDATE pedido SET cedula_empleado = %s, servicio = %s, precio = %s WHERE codigo_pedido = %s"
-        data1= (cedula_empleado, servicio, precio, codigo_pedido)
+        sql1= "UPDATE pedido SET  cedula_cliente = %s, fecha_pedido = %s WHERE codigo_pedido = %s"
+        data1= (cliente,fecha_pedido, codigo_pedido,)
         cursor.execute(sql1, data1)
+        conexion_MySQLdb.commit()
+        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
+        data2= (tecnico, codigo_pedido,)
+        cursor.execute(sql2, data2)
         flash ('Datos actualizados correctamente.')
         conexion_MySQLdb.commit()
+        cursor.close()
     return redirect(url_for('verRegistrosPedidos')) 
 
+
+@app.route('/actualizarPedido/<string:codigo_pedido>', methods=['POST'])
+def ActualizarPedido(codigo_pedido):
+
+    conexion_MySQLdb = connectionBD()
+
+    # Obtener valores del formulario
+    codigo_servicio = request.form.get('servicio')  
+    fecha_inicio_trabajo = request.form.get('fecha_inicio_trabajo')  
+    fecha_fin_trabajo = request.form.get('fecha_fin_trabajo')  
+    cancelado = request.form.get('cancelado')  # Convertir a Booleano
+    fecha_pago = request.form.get('fecha_pago')  
+    tipo_moneda = request.form.get('tipo_moneda')  
+    metodo_pago = request.form.get('metodo_pago')  
+    codigo_pedido = request.form.get('codigo_pedido')  
+    referencia = request.form.get('referencia')
+    total_a_pagar = request.form.get('total_a_pagar')
+
+    if request.method == 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql = """UPDATE pedido 
+SET 
+    fecha_inicio_trabajo = COALESCE(%s, fecha_inicio_trabajo),
+    fecha_fin_trabajo = COALESCE(%s, fecha_fin_trabajo),
+    cancelado = COALESCE(%s, cancelado),
+    total_a_pagar = COALESCE (%s, total_a_pagar)
+
+WHERE codigo_pedido = %s;"""
+        # Convertir valores vacíos de fecha fin trabajo a None
+        fecha_fin_trabajo = fecha_fin_trabajo if fecha_fin_trabajo else None
+        
+        data = (fecha_inicio_trabajo, fecha_fin_trabajo, cancelado,total_a_pagar, codigo_pedido,)
+        cursor.execute(sql, data)
+        conexion_MySQLdb.commit()
+        cursor.close()
+
+        cursor = conexion_MySQLdb.cursor()
+        sql2= """INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES (%s,%s) """
+        data2= (codigo_pedido, codigo_servicio,)
+        cursor.execute(sql2, data2)
+        conexion_MySQLdb.commit()
+
+        if fecha_pago or tipo_moneda or metodo_pago:
+            referencia = referencia if referencia else None  
+            sql3= """INSERT INTO pago (fecha_pago, tipo_moneda, metodo_pago, referencia_pago, codigo_pedido) VALUES (%s, %s, %s, %s, %s)"""
+            data3= (fecha_pago, tipo_moneda, metodo_pago, referencia,  codigo_pedido,)
+            cursor.execute(sql3, data3)
+            conexion_MySQLdb.commit()
+        cursor.close()
+        flash( "Pedido actualizado correctamente")
+
+    return redirect(url_for('verRegistrosPedidos'))
 
 @app.route('/deleteServicio/<string:codigo_servicio>')
 def deleteServicio(codigo_servicio):

@@ -1,168 +1,67 @@
-<!doctype html>
+<title>Pedidos registrados</title>
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.88.1">
-    <title>Ver pedidos</title>
+{% extends "dashboard/basemenu.html" %}
 
-{% block title %}Ver pedidos{% endblock %}
-
-<!---Boostrap--->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-
-    <!-- Bootstrap core CSS -->
-{% block customeCSS %}
-<link rel="stylesheet" href="{{url_for('static', filename='assets/css/dashboard.css')}}">
-{%endblock %}
+{% block title %}Pedidos Registrados{% endblock %}
 
 
 
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
+{% block sidebar %}{% endblock %}
 
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-    </style>
 
-    {% block body %}
 
-  <body>
-<!--Menu superior horizontal-->
-<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="{{url_for('perfil' )}}">Perfil</a>
-  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-      <a class="nav-link px-3" href="{{url_for('logout')}}">Cerrar sesión</a>
-    </div>
-  </div>
-</header>
+{% block content %} 
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/verPedidos1.css')}}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-<!---Menu lateral-->
-
-<div class="container-fluid"
-
-  <div class="row">
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-      <div class="position-sticky pt-3">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{url_for('dashboard')}}">
-              <span data-feather="home"></span>
-              Dashboard
-            </a>
-          </li>
-          <div class="nav-item droptown">
-            <button type="button" class="btn btn-light dropdown-toggle" id="simpleDropdown"
-              data-bs-toggle="dropdown" aria-expanded=false>
-              <span data-feather="file"></span>
-              Empleados
-            </button>
-              <!-- Link or button to toggle dropdown -->
-              <ul class="dropdown-menu px-3" role="menu">
-                <li><a href="{{url_for('verRegistrosEmpleados')}}">Ver registros</a></li>
-                <li><a href="{{url_for('registrarEmpleado')}}">Registrar</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="nav-item droptown">
-            <button type="button" class="btn btn-light dropdown-toggle" id="simpleDropdown"
-              data-bs-toggle="dropdown" aria-expanded=false>
-              <span data-feather="file"></span>
-              Clientes
-            </button>
-              <!-- Link or button to toggle dropdown -->
-              <ul class="dropdown-menu px-3" role="menu">
-                <li><a href="{{url_for('verRegistrosClientes')}}">Ver registros</a></li>
-                <li><a href="{{url_for('registrarCliente')}}">Registrar</a></li>
-              </ul>
-            </div>
-
-            <div class="nav-item droptown">
-              <button type="button" class="btn btn-light dropdown-toggle" id="simpleDropdown"
-                data-bs-toggle="dropdown" aria-expanded=false>
-                <span data-feather="file"></span>
-              Pedidos
-            </button>
-              <!-- Link or button to toggle dropdown -->
-              <ul class="dropdown-menu px-3" role="menu">
-                <li><a href="{{url_for('verRegistrosPedidos')}}">Ver pedidos</a></li>
-                <li><a href="{{url_for('nuevoPedido')}}">Nuevo pedido</a></li>
-              </ul>
-            </div>
-    </nav>
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    <main class=" px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Registro de pedidos</h1>
+        <h1 class="h2">Pedidos registrados</h1>
         <button type="button" href="#" class="btn btn-light">Exportar PDF</button>
       
   </div>
-  {% with messages = get_flashed_messages()  %}
-  {% if messages %}
-{% for message in messages %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">
-  </button>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
 
 
-        <!---Tabla-->
-        <div class=container>
 
-          <table class="table table bordered">
-              <thead>
-                  <th scope="col">Cédula</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Apellido</th>
-                  <th scope="col">Teléfono</th>
-                  <th scope="col">Código de pedido</th>
-                  <th scope="col">Cédula del técnico</th>
-                  <th scope="col">Servicio</th>
-                  <th scope="col">Precio</th>
-                  <th scope="col">Fecha</th>
-                  <th scope="col"></th>
-                   <th scope="col"></th>
-  
-                </thead>
-          
-          <tbody>
-            {% for d in data %}
-              <tr>
-                  <td>{{d.cedula}}</td>
-                  <td>{{d.nombre}}</td>
-                  <td>{{d.apellido}}</td>
-                  <td>{{d.telefono}}</td>
-                  <td>{{d.codigo_pedido}}</td>
-                  <td>{{d.cedula_empleado}}</td>
-                  <td>{{d.descripcion}}</td>
-                  <td>{{d.precio}}</td>
-                  <td>{{d.fecha_pedido}}</td>
-                  <td><button class="btn btn-primary btn-sm" id="btn-edit{{d.cedula}}" data-bs-toggle="modal" data-bs-target="#modal{{d.cedula}}">Editar</button></td>
-                  <td><button class="eliminar btn btn-danger btn-sm" id="btn-eliminar{{d.cedula}}" data-bs-toggle="modal" data-bs-target="#modaleliminar{{d.cedula}}" >Eliminar</button></td>
-                </tr>
-  
+<div id="pedidos-container">
+  {% for d in dataPedidos1 %}
+    <div class="pedido-item"style="
+    {% if d.codigo_estadoDeProceso == 2 %}
+      border-left: 5px solid #87CEEB;
+    {% elif d.codigo_estadoDeProceso == 3 %}
+      border-left: 5px solid #ff7300;
+    {% elif d.codigo_estadoDeProceso == 4 %}
+      border-left: 5px solid #75dd71;
+    {% else %}
+      border-left: 5px solid #FFD700;
+    {% endif %}
+  ">
+
+      <div class="pedido-info">
+        <div><strong>Cliente:</strong> {{ d.nombre_cliente }} {{ d.apellido_cliente }}  <strong>Teléfono:</strong> {{ d.prefijo_telefonico }}{{ d.numero }}</div>
+        <div class="text-muted"><strong>Dirección:</strong> Calle {{ d.calle }}, Sector {{ d.sector }}, casa n° {{ d.numero_casa }}, {{ d.ciudad }}, {{ d.estado }}</div>
+        <div><strong>Técnico asignado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }} <strong>   Fecha:</strong> {{ d.fecha_pedido }}      </div>
+        <div><strong>Estado de pedido:</strong> {{ d.estado_pedido }}</div>
+        
+      </div>
+      <div class="botones">
+        
+        <button class="btn btn-primary btn-sm"  id="btn-edit{{d.cedula}}" data-bs-toggle="modal" data-bs-target="{% if d.estado_pedido == 'pendiente de pago' %}#modalPendiente{{d.cedula}}
+        {% elif d.estado_pedido == 'en proceso' %}#modalProceso{{d.cedula}}
+        {% elif d.estado_pedido == 'completado' %}#modalCompletado{{d.cedula}}
+        {% else %}#modal{{d.cedula}}{% endif %}">Editar</button>
+        <button class="eliminar btn btn-danger btn-sm" id="btn-eliminar{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modaleliminar{{d.codigo_pedido}}" >Eliminar</button>
+        <div class="boton-con-icono"><button class="boton toggle" data-bs-toggle="modal" 
+          data-bs-target="{% if d.codigo_estadoDeProceso == 3 %}#modalPendiente{{d.codigo_pedido}}
+          {% elif d.codigo_estadoDeProceso == 2 %}#modalProceso{{d.codigo_pedido}}
+          {% else %}#modalDefault{{d.codigo_pedido}}{% endif %}"></button><i class='bx bx-right-arrow-alt'></i></div>
+      </div>
+    </div>
+  {% endfor %}
+
               <!-- modal -->
+
+              {% for d in dataPedidos1 %}
   
               <div class="modal fade" id="modal{{d.cedula}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
@@ -175,22 +74,27 @@
                         <form action="/editPedido/{{d.cedula}}" method="post">
   
                            
-                            <label>Nombre</label>
-                            <input type="text" class="form-control mb-3" name="nombre" value="{{d.nombre}}">
-                            <label>Apellido</label>
-                            <input type="text" class="form-control mb-3" name="apellido" value="{{d.apellido}}">
-                            <label>Teléfono</label>
-                            <input type="text" class="form-control mb-3" name="telefono" value="{{d.telefono}}">
+                          <label for="cliente" class="form-label mt-1">Cliente</label>
+                          <select name="cliente" id="cliente" class="form-control" required>
+                              <option value="{{d.cedula_cliente}}" selected="selected">{{d.nombre_cliente}} {{d.apellido_cliente}}</option>
+                              {% for c in dataClientes %}
+                                <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option> 
+                                {% endfor %} 
+                          </select>                          
                             <label>Código de pedido</label>
-                            <input type="text" class="form-control mb-3" name="codigo_pedido" value="{{d.codigo_pedido}}" >
-                            <label>Cédula del empleado</label>
-                            <input type="text" class="form-control mb-3" name="cedula_empleado" value="{{d.cedula_empleado}}">
-                            <label>Servicio</label>
-                            <input type="text" class="form-control mb-3" name="servicio" value="{{d.descripcion}}">
-                            <label>Precio</label>
-                            <input type="text" class="form-control mb-3" name="precio" value="{{d.precio}}">
-                            <label>Fecha</label>
-                            <input type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
+                            <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
+                            <label for="tecnico" class="form-label mt-1">Técnico asigando</label>
+                              <select name="tecnico" class="form-control" required>
+                                <option value="{{d.cedula_tecnico}}" selected="selected">{{d.nombre_tecnico}} {{d.apellido_tecnico}}</option>
+                                {% for c in dataTecnicos %}
+                                <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
+                                {% endfor %}
+                              </select>
+                              <label>Fecha</label>
+                              <input type="text" class="form-control mb-3 fecha_pedido" id="fecha_pedido"name="fecha_pedido" value="{{d.fecha_pedido}}">
+                            <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+                            
+                            
                       
                       
                       
@@ -208,44 +112,277 @@
                     </div>
                   </div>
 
-            <!-- modal para borrar-->
+                  <!-- modal para borrar-->
 
-            <div class="modal fade" id="modaleliminar{{d.cedula}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  <div class="modal fade" id="modaleliminar{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>¿Está seguro de que desea eliminar este registro?</p>
+                          <div class="modal-footer">
+                            <a href="{{url_for('deletePedido', codigo_pedido=d.codigo_pedido)}}" class="btn btn-danger btn-sm">Eliminar</a>
+                            <button type="button" data-bs-dismiss="modal" class="btn btn-sm" id="cancelarEliminar">Cancelar</button>
+                        </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div> 
+        
+
+                <!-- Modal para actualizar estado de proceso-->
+                  <div class="modal fade" id="modalDefault{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="modalToggleLabel{{d.codigo_pedido}}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="modalToggleLabel{{d.codigo_pedido}}">Actualizar estado del pedido</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="text-muted">
+                            <div><strong>Cliente:</strong> {{d.cedula_cliente}} {{d.nombre_cliente}} {{d.nombre_apellido}}</div>
+                            <div><strong>Técnico asignado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }}</div>
+                            <div><strong>  Fecha del pedido:</strong>  {{ d.fecha_pedido }}     </div>
+                            <form action="/actualizarPedido/{{ d.codigo_pedido }}" method="post">
+
+                            <div>Codigo del pedido<INPUT name="codigo_pedido" id="codigo_pedido"  class="form-control" type="TEXT" value=" {{d.codigo_pedido}}" readonly></div>
+                          </div>
+                          
+                            <label for="servicio" class="form-label mt-1">Servicio</label>
+                            <select name="servicio" class="form-control" required>
+                              <option value="0" disabled selected="selected">--- Seleccione ---</option>
+                              {% for c in dataServicios %}
+                              <option value="{{ c.codigo_servicio}}">{{c.tipo}} - {{c.descripcion}}</option>
+                              {% endfor %}
+                            </select>
+                            <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
+                            <input class="form-control" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
+                            
+                            <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
+                            <input class="form-control required "type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+                            
+                            <label for="total a pagar">Total a pagar</label>
+                            <input class="form-control" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" required>
+                            
+                            <!-- Checkbox para marcar cancelado -->
+                            <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
+                            <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
+                                  data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+
+                            <!-- Campos adicionales ocultos -->
+                            <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
+                                <label>Fecha de pago</label>
+                                <input class="form-control"type="text" name="fecha_pago" class="fecha_pago" id="fecha_pago{{ d.codigo_pedido }}">
+
+                                <label>Tipo de moneda</label>
+                                <select class="form-control"id="tipo_moneda{{ d.codigo_pedido }}" class="tipo-moneda" name="tipo_moneda">
+                                    <option value="bolivares">Bolívares</option>
+                                    <option value="divisas">Divisas</option>
+                                </select>
+
+                                <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
+                                    <label>Método de pago</label>
+                                    <select  class="form-control" id="metodo_pago{{ d.codigo_pedido }}" class="metodo-pago" name="metodo_pago">
+                                        <!-- Opciones dinámicas en JS -->
+                                    </select>
+                                </div>
+
+                                <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
+                                    <label>Referencia</label>
+                                    <input type="number" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                          
+                            <!-- Campos del formulario -->
+                          </form>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="modal-body">
-                    <p>¿Está seguro de que desea eliminar este registro?</p>
-                    <div class="modal-footer">
-                      <a href="{{url_for('deletePedido', cedula=d.cedula)}}" class="btn btn-danger btn-sm">Eliminar</a>
-                      <button type="button" data-bs-dismiss="modal" class="btn btn-sm" id="cancelarEliminar">Cancelar</button>
-                   </div>
+
+                  <!-- Modal en proceso-->
+                  <div class="modal fade" id="modalProceso{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5">Actualizar Pedido - En Proceso</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <form action="/editarPedidoProceso/{{d.codigo_pedido}}" method="post">
+                            <div class="input-group">
+                              <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
+                              <input required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+                              
+                            </div>
+                                <!-- Checkbox para marcar cancelado -->
+                                <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
+                                <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
+                                      data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+
+                                <!-- Campos adicionales ocultos -->
+                                <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
+                                    <label>Fecha de pago</label>
+                                    <input type="text" name="fecha_pago" class="fecha_pago" id="fecha_pago{{ d.codigo_pedido }}">
+
+                                    <label>Tipo de moneda</label>
+                                    <select id="tipo_moneda{{ d.codigo_pedido }}" class="tipo-moneda" name="tipo_moneda">
+                                        <option value="bolivares">Bolívares</option>
+                                        <option value="divisas">Divisas</option>
+                                    </select>
+
+                                    <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
+                                        <label>Método de pago</label>
+                                        <select id="metodo_pago{{ d.codigo_pedido }}" class="metodo-pago" name="metodo_pago">
+                                            <!-- Opciones dinámicas en JS -->
+                                        </select>
+                                    </div>
+
+                                    <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
+                                        <label>Referencia</label>
+                                        <input type="number" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                                    </div>
+                                </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  
+
+                  <!--Modal pendiente de pago-->
+                  <div class="modal fade" id="modalPendiente{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5">Actualizar Pedido - Pendiente de Pago</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <form action="/editarPedidoPendiente/{{d.codigo_pedido}}" method="post">
+                            <label>Total a pagar:</label>
+                            <input type="number" name="total_a_pagar" class="form-control" value="{{d.total_a_pagar}}" required>
+                  
+                            <label>Fecha de pago esperada:</label>
+                            <input type="date" name="fecha_pago_esperada" class="form-control" value="{{d.fecha_pago_esperada}}" required>
+                            
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  
+              {% endfor %}
+  
+  
+  
+  
                 </div>
-              </div>
-            </div> 
-  
-            {% endfor %}
-  
-  
-          </tbody>
-  
-        </table>
-      </div>
-  
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"> </script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+  flatpickr("#fecha_pedido", {
+      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
+      enableTime: false,     // Deshabilitar hora (solo fecha)
+      locale: "es"           // Español
+  });
+</script>
+<script>
+  flatpickr("#fecha_inicio_trabajo", {
+      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
+      enableTime: false,     // Deshabilitar hora (solo fecha)
+      locale: "es"           // Español
+  });
+</script>
+
+<script>
+  flatpickr("#fecha_fin_trabajo", {
+      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
+      enableTime: false,     // Deshabilitar hora (solo fecha)
+      locale: "es"           // Español
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+  const elementosFechaPago = document.querySelectorAll('.fecha_pago'); // Seleccionar por clase
+
+  elementosFechaPago.forEach(elemento => {
+    flatpickr(elemento, {
+      dateFormat: "Y-m-d",
+      enableTime: false,
+      locale: "es"
+    });
+  });
+});
 
 
+// Inicialización de checkboxes y campos dependientes
+document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* modal
+            modal.addEventListener('shown.bs.modal', () => { // Escuchar el evento 'shown.bs.modal'
+                const codigo_pedido = modal.id.replace(/[^0-9]/g, ''); // Extraer el código del pedido del ID del modal
+                const checkbox = modal.querySelector(`#cancelado${codigo_pedido}`);
+                const detallesPago = modal.querySelector(`#detallesPago${codigo_pedido}`);
+                const tipoMoneda = modal.querySelector(`#tipo_moneda${codigo_pedido}`);
+                const metodoPago = modal.querySelector(`#metodo_pago${codigo_pedido}`);
+                const metodoPagoContainer = modal.querySelector(`#metodoPagoContainer${codigo_pedido}`);
+                const referenciaContainer = modal.querySelector(`#referenciaContainer${codigo_pedido}`);
+                
+
+                if (!checkbox || !detallesPago || !tipoMoneda || !metodoPago || !metodoPagoContainer || !referenciaContainer) {
+                    console.warn(`Algunos elementos del modal ${codigo_pedido} no se encontraron.`);
+                    return;
+                }
+
+                function actualizarCampos() {
+                    detallesPago.style.display = checkbox.checked ? "block" : "none";
+                    if (!checkbox.checked) {
+                        metodoPagoContainer.style.display = "none";
+                        referenciaContainer.style.display = "none";
+                    }
+                }
+
+                function actualizarMetodosPago() {
+                    metodoPago.innerHTML = "";
+                    metodoPagoContainer.style.display = "block";
+                    if (tipoMoneda.value === "bolivares") {
+                        metodoPago.innerHTML = `<option value="efectivo">Efectivo</option><option value="pago_movil">Pago Móvil</option>`;
+                    } else {
+                        metodoPago.innerHTML = `<option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option>`;
+                    }
+                }
+
+                function actualizarReferencia() {
+                    referenciaContainer.style.display = (metodoPago.value === "pago_movil" || metodoPago.value === "transferencia") ? "block" : "none";
+                }
+
+                checkbox.addEventListener("change", actualizarCampos);
+                tipoMoneda.addEventListener("change", actualizarMetodosPago);
+                metodoPago.addEventListener("change", actualizarReferencia);
+
+                actualizarCampos();
+                actualizarMetodosPago();
+                actualizarReferencia();
+
+                
+            });
+        });
 
 
+</script>
 
-
-
-
-
-</body>
 
 {% endblock %}
-</html>

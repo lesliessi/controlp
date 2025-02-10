@@ -77,11 +77,10 @@ def perfil():
 def administrarUsuarios():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor()
-    cursor.execute ("""SELECT utr.codigo_rol, u.codigo_usuario, u.usuario, u.cedula, p.nombre, p.apellido, rol.descripcion
+    cursor.execute ("""SELECT rol.codigo_rol, u.codigo_usuario, u.usuario, u.cedula, p.nombre, p.apellido, rol.descripcion
                         FROM usuario u
                         JOIN persona p ON u.cedula = p.cedula
-                        JOIN usuario_tiene_rol utr ON utr.codigo_usuario = u.codigo_usuario
-                        JOIN rol ON rol.codigo_rol = utr.codigo_rol;
+                        JOIN rol ON rol.codigo_rol = u.codigo_rol;
                         """)
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
@@ -102,8 +101,7 @@ def historialSesiones():
     cursor.execute( """
     SELECT usuario.usuario, h.codigo_historial, h.ultima_sesion
     FROM historial h
-    JOIN usuario_genera_historial ugh ON h.codigo_historial = ugh.codigo_historial
-    JOIN usuario ON ugh.codigo_usuario = usuario.codigo_usuario
+    JOIN usuario ON h.codigo_usuario = usuario.codigo_usuario
     ORDER BY h.ultima_sesion DESC
     """)
     
@@ -117,7 +115,7 @@ def historialSesiones():
 def verRegistrosEmpleados():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor()
-    cursor.execute ("SELECT persona.cedula, persona.nombre, persona.apellido, persona.telefono, empleado.tipo, empleado.cargo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula ")
+    cursor.execute ("SELECT telefono.prefijo_telefonico, telefono.numero, persona.cedula, persona.nombre, persona.apellido, empleado.tipo, empleado.cargo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula JOIN telefono ON telefono.cedula=persona.cedula ")
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []
@@ -140,7 +138,11 @@ def verRegistrosEmpleados():
 def verRegistrosClientes():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor ()
-    cursor.execute ("SELECT cliente.cedula, persona.nombre, persona.apellido, persona.telefono, direccion.codigo_direccion, direccion.calle, direccion.sector, direccion.numero_casa, direccion.municipio, direccion.estado FROM cliente INNER JOIN persona ON cliente.cedula=persona.cedula INNER JOIN persona_tiene_direccion ON persona_tiene_direccion.cedula = persona.cedula INNER JOIN direccion ON direccion.codigo_direccion = persona_tiene_direccion.codigo_direccion")
+    cursor.execute ("""SELECT*  FROM cliente INNER JOIN persona ON cliente.cedula=persona.cedula 
+                    INNER JOIN direccion ON direccion.cedula = persona.cedula 
+                    JOIN telefono ON telefono.cedula = persona.cedula
+                    INNER JOIN ciudad ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+                    JOIN estado ON estado.codigo_estado= ciudad.codigo_estado""")
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []
@@ -149,7 +151,7 @@ def verRegistrosClientes():
         insertObject.append(dict(zip(columNames, record)))
         cursor.close
     if session['rol']==1:
-        return render_template ('dashboard/clientes/verCliente.html', data = insertObject)
+        return render_template ('dashboard/clientes/verCliente.html', data = insertObject, estados=listaEstados())
     else:
         return render_template ('dashboard2/clientes2/verCliente2.html', data = insertObject)
     #return render_template('dashboard/clientes/verCliente.html', data = insertObject)
@@ -159,7 +161,29 @@ def verRegistrosClientes():
 def verRegistrosPedidos():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor ()
-    cursor.execute ("SELECT pedido.codigo_pedido, pedido.cedula_empleado, pedido.precio, persona.cedula, persona.nombre, persona.apellido, persona.telefono, cliente_realiza_pedido.fecha_pedido, servicio.descripcion, servicio.codigo_servicio FROM servicio JOIN pedido_corresponde_a_servicio pcs ON servicio.codigo_servicio = pcs.codigo_servicio JOIN pedido ON pedido.codigo_pedido = pcs.codigo_pedido INNER JOIN cliente_realiza_pedido ON pedido.codigo_pedido = cliente_realiza_pedido.codigo_pedido INNER JOIN cliente ON cliente_realiza_pedido.cedula = cliente.cedula INNER JOIN persona ON cliente.cedula = persona.cedula")
+    cursor.execute ("""SELECT ciudad.codigo_ciudad, ciudad.nombre_ciudad as ciudad, estado.nombre_estado as estado,
+direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+persona.nombre AS nombre_cliente, persona.apellido AS apellido_cliente, persona.cedula AS cedula_cliente,
+telefono.prefijo_telefonico, telefono.numero, 
+cliente.cedula,
+pedido.codigo_pedido, pedido.fecha_pedido, pedido.cedula_cliente, pedido.cedula_empleado_registra, pedido.codigo_estadoDeProceso,
+estadoDeProceso.descripcion AS estado_pedido,
+tecnico.cedula AS cedula_tecnico, tecnico.nombre AS nombre_tecnico, tecnico.apellido AS apellido_tecnico,
+empleado.nombre AS nombre_empleado, empleado.apellido AS apellido_empleado
+FROM estado JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+JOIN direccion on direccion.codigo_ciudad= ciudad.codigo_ciudad
+JOIN persona ON direccion.cedula = persona.cedula 
+JOIN telefono ON persona.cedula= telefono.cedula
+JOIN cliente ON cliente.cedula = persona .cedula
+JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+
+JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadodeproceso.codigo_estadoDeProceso
+                    ORDER BY pedido.codigo_pedido DESC
+
+ """)
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []
@@ -168,12 +192,37 @@ def verRegistrosPedidos():
         insertObject.append(dict(zip(columNames, record)))
         cursor.close
     if session['rol']==1:
-        return render_template ('dashboard/pedidos/verPedidos.html', data = insertObject)
+        return render_template ('dashboard/pedidos/verPedidos.html', dataPedidos1 = insertObject , dataTecnicos=listaTecnicos(),
+                                 dataClientes=listaClientes(), dataServicios=listaServicios())
     else:
-        return render_template ('dashboard2/pedidos2/verPedidos2.html', data = insertObject)
+        return render_template ('dashboard2/pedidos2/verPedidos2.html', dataPedidos1 = insertObject, dataTecnicos=listaTecnicos(),
+                                 dataClientes=listaClientes(), dataServicios=listaServicios())
 
     #return render_template('dashboard/pedidos/verPedidos.html', data = insertObject)
 
+
+def dataDireccion(cliente):
+    cliente = session.get ('cliente')
+
+    conexion_MySQLdb = connectionBD()
+
+    SQLd= "SELECT* FROM direccion WHERE cedula= %s"
+    vald= (cliente)
+    cursor = conexion_MySQLdb.cursor(dictionary=True)
+    cursor.execute (SQLd, vald)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+    cursor.close
+    conexion_MySQLdb.commit()
+
+    if session['rol']==1:
+        return render_template ('dashboard/pedidos/nuevoPedido.html', dataDireccion = insertObject)
+    else:
+        return render_template ('dashboard2/pedidos2/nuevoPedido2.html', dataDireccion = insertObject)
 
 @app.route('/ver-registros-Servicios') 
 def verRegistrosServicios():
