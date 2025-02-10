@@ -370,8 +370,9 @@ def registrarEmpleado():
                     conexion_MySQLdb.commit()
                     flash ('Empleado registrado correctamente.')
                     cursor.close()
-                    
-            return redirect(url_for('verRegistrosEmpleados'))
+                    return redirect(url_for('verRegistrosEmpleados'))
+            return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+
     
         return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
 
