@@ -123,6 +123,291 @@ def listaCiudades():
     conexion_MySQLdb.close() #cerrando conexion de la BD
     return ciudad       
 
+def verPedidosEnProceso():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""SELECT pedido.codigo_pedido, pedido.fecha_inicio_trabajo,
+servicio.tipo, servicio.descripcion AS servicio_descripcion
+FROM pedido JOIN pedido_corresponde_a_servicio ON pedido_corresponde_a_servicio.codigo_pedido = pedido.codigo_pedido
+JOIN servicio ON servicio.codigo_servicio = pedido_corresponde_a_servicio.codigo_servicio
+                    WHERE pedido.codigo_estadoDeProceso = 2
+                    ORDER BY pedido.codigo_pedido DESC
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+def verPedidosPendientes():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""SELECT pedido.codigo_pedido, pedido.fecha_inicio_trabajo, pedido.fecha_fin_trabajo, pedido.total_a_pagar,
+servicio.tipo, servicio.descripcion AS servicio_descripcion
+FROM pedido JOIN pedido_corresponde_a_servicio ON pedido_corresponde_a_servicio.codigo_pedido = pedido.codigo_pedido
+JOIN servicio ON servicio.codigo_servicio = pedido_corresponde_a_servicio.codigo_servicio
+                    WHERE pedido.codigo_estadoDeProceso = 3
+                    ORDER BY pedido.codigo_pedido DESC
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+def verPedidosCompletados():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""SELECT 
+    ciudad.codigo_ciudad, 
+    ciudad.nombre_ciudad AS ciudad, 
+    estado.nombre_estado AS estado,
+    direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+    persona.nombre AS nombre_cliente, 
+    persona.apellido AS apellido_cliente, 
+    persona.cedula AS cedula_cliente,
+    telefono.prefijo_telefonico, 
+    telefono.numero, 
+    cliente.cedula,
+    pedido.codigo_pedido, 
+    pedido.fecha_pedido, 
+    pedido.cedula_cliente, 
+    pedido.cedula_empleado_registra, 
+    pedido.codigo_estadoDeProceso,
+    pedido.fecha_inicio_trabajo, 
+    pedido.fecha_fin_trabajo,
+    pedido.total_a_pagar, 
+    pedido.cancelado, 
+    pago.tipo_moneda,
+    pago.fecha_pago,
+    servicio.tipo, 
+    servicio.descripcion AS servicio_descripcion,
+                    servicio.codigo_servicio,
+    estadoDeProceso.descripcion AS estado_pedido,
+    tecnico.cedula AS cedula_tecnico, 
+    tecnico.nombre AS nombre_tecnico, 
+    tecnico.apellido AS apellido_tecnico,
+    empleado.nombre AS nombre_empleado, 
+    empleado.apellido AS apellido_empleado
+
+FROM estado 
+JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+JOIN persona ON direccion.cedula = persona.cedula 
+JOIN telefono ON persona.cedula = telefono.cedula
+JOIN cliente ON cliente.cedula = persona.cedula
+JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+
+-- Permite mostrar pedidos sin técnico asignado
+LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+
+-- Permite mostrar pedidos sin servicio asociado
+LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio 
+
+-- Permite mostrar pedidos sin pago registrado
+LEFT JOIN pago ON pago.codigo_pedido = pedido.codigo_pedido    
+
+WHERE pedido.codigo_estadoDeProceso = 4
+AND pedido.fecha_pedido >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) -- Pedidos del último mes              
+
+ORDER BY pedido.codigo_pedido DESC;
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+def verPedidosTodo():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""
+                    SELECT 
+    ciudad.codigo_ciudad, 
+    ciudad.nombre_ciudad AS ciudad, 
+    estado.nombre_estado AS estado,
+    direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+    persona.nombre AS nombre_cliente, 
+    persona.apellido AS apellido_cliente, 
+    persona.cedula AS cedula_cliente,
+    telefono.prefijo_telefonico, 
+    telefono.numero, 
+    cliente.cedula,
+    pedido.codigo_pedido, 
+    pedido.fecha_pedido, 
+    pedido.cedula_cliente, 
+    pedido.cedula_empleado_registra, 
+    pedido.codigo_estadoDeProceso,
+    pedido.fecha_inicio_trabajo, 
+    pedido.fecha_fin_trabajo,
+    pedido.total_a_pagar, 
+    pedido.cancelado, 
+    pago.tipo_moneda,
+    pago.fecha_pago,
+    servicio.tipo, 
+    servicio.descripcion AS servicio_descripcion,
+                    servicio.codigo_servicio,
+    estadoDeProceso.descripcion AS estado_pedido,
+    tecnico.cedula AS cedula_tecnico, 
+    tecnico.nombre AS nombre_tecnico, 
+    tecnico.apellido AS apellido_tecnico,
+    empleado.nombre AS nombre_empleado, 
+    empleado.apellido AS apellido_empleado
+
+FROM estado 
+JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+JOIN persona ON direccion.cedula = persona.cedula 
+JOIN telefono ON persona.cedula = telefono.cedula
+JOIN cliente ON cliente.cedula = persona.cedula
+JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+
+-- Permite mostrar pedidos sin técnico asignado
+LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+
+-- Permite mostrar pedidos sin servicio asociado
+LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio 
+
+-- Permite mostrar pedidos sin pago registrado
+LEFT JOIN pago ON pago.codigo_pedido = pedido.codigo_pedido                  
+
+ORDER BY pedido.codigo_pedido DESC;
+
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+def verPedidosEnCurso():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""
+                    SELECT 
+    ciudad.codigo_ciudad, 
+    ciudad.nombre_ciudad AS ciudad, 
+    estado.nombre_estado AS estado,
+    direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+    persona.nombre AS nombre_cliente, 
+    persona.apellido AS apellido_cliente, 
+    persona.cedula AS cedula_cliente,
+    telefono.prefijo_telefonico, 
+    telefono.numero, 
+    cliente.cedula,
+    pedido.codigo_pedido, 
+    pedido.fecha_pedido, 
+    pedido.cedula_cliente, 
+    pedido.cedula_empleado_registra, 
+    pedido.codigo_estadoDeProceso,
+    pedido.fecha_inicio_trabajo, 
+    pedido.fecha_fin_trabajo,
+    pedido.total_a_pagar, 
+    pedido.cancelado, 
+    servicio.tipo, 
+    servicio.descripcion AS servicio_descripcion,
+                    servicio.codigo_servicio,
+    estadoDeProceso.descripcion AS estado_pedido,
+    tecnico.cedula AS cedula_tecnico, 
+    tecnico.nombre AS nombre_tecnico, 
+    tecnico.apellido AS apellido_tecnico,
+    empleado.nombre AS nombre_empleado, 
+    empleado.apellido AS apellido_empleado
+
+FROM estado 
+JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+JOIN persona ON direccion.cedula = persona.cedula 
+JOIN telefono ON persona.cedula = telefono.cedula
+JOIN cliente ON cliente.cedula = persona.cedula
+JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+
+-- Permite mostrar pedidos sin técnico asignado
+LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+
+-- Permite mostrar pedidos sin servicio asociado
+LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio 
+
+WHERE pedido.codigo_estadoDeProceso <> 4  -- Excluye los pedidos completados
+
+
+ORDER BY pedido.codigo_pedido DESC;
+
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+def totalPedidosPorAtender():
+    conexion_MySQLdb = connectionBD()
+    cursor    = conexion_MySQLdb.cursor ()
+    cursor.execute ("""
+                    SELECT 
+    pedido.codigo_estadoDeProceso, 
+    estadoDeProceso.descripcion AS estado_pedido, 
+    COUNT(*) AS total_pedidos
+FROM pedido
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+WHERE pedido.codigo_estadoDeProceso = 1
+GROUP BY codigo_estadoDeProceso, estadoDeProceso.descripcion
+ORDER BY total_pedidos DESC;
+
+
+
+ """)
+    myresult = cursor.fetchall()
+    #Convertir los datos a diccionario
+    insertObject = []
+    columNames= [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columNames, record)))
+        cursor.close
+
+    return insertObject
+
+
 
 
 

@@ -1,4 +1,5 @@
-from flask import Flask, render_template, redirect, url_for, session, flash, Blueprint
+from flask import Flask, render_template, redirect, url_for, session, flash, Blueprint, send_file
+from datetime import datetime
 from funciones import *  #Importando mis Funciones
 import conexionBD as db
 from arrow import utcnow, get
@@ -9,6 +10,10 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib.colors import black, purple, white
 from reportlab.pdfgen import*
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
+
+import io
 
 #Declarando nombre de la aplicación e inicializando, crear la aplicación Flask
 app = Flask(__name__)
@@ -191,14 +196,26 @@ JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadodeproceso.codigo_e
     for record in myresult:
         insertObject.append(dict(zip(columNames, record)))
         cursor.close
+
     if session['rol']==1:
         return render_template ('dashboard/pedidos/verPedidos.html', dataPedidos1 = insertObject , dataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios())
+                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos2 = verPedidosEnCurso(),
+                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados())
     else:
         return render_template ('dashboard2/pedidos2/verPedidos2.html', dataPedidos1 = insertObject, dataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios())
+                                 dataClientes=listaClientes(), dataServicios=listaServicios(),dataPedidos2 = verPedidosEnCurso(),
+                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados())
 
     #return render_template('dashboard/pedidos/verPedidos.html', data = insertObject)
+@app.route('/ver-registros-Pedidos-completados') 
+def verRegistrosPedidosCompletados():
+    
+    if session['rol']==1:
+        return render_template ('dashboard/pedidos/verPedidosCompletados.html',  dataTecnicos=listaTecnicos(),
+                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos4 = verPedidosCompletados())
+    else:
+        return render_template ('dashboard2/pedidos2/verPedidosCompletados2.html', dataPedataTecnicos=listaTecnicos(),
+                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos4=verPedidosCompletados())
 
 
 def dataDireccion(cliente):
@@ -242,38 +259,40 @@ def verRegistrosServicios():
         return render_template ('dashboard2/servicios2/verServicios2.html', data = insertObject)
 
     #return render_template('dashboard/servicios/verServicios.html', data = insertObject)
+@app.route('/generar-reporte-completo-pedidos')
+def generar_reporte_completo_pedidos():
+    try:
+        reporte = generarReporteCompletoPedidos()
+        return send_file(
+            io.BytesIO(reporte),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='Reporte completo de pedidos.pdf'
+        )
+    except Exception as e:
+        return f"Error al generar el reporte: {str(e)}", 500
 
-@app.route('/generar-reporte-empleados')
 class reportePDF(object):
-    """Exportar una lista de diccionarios a una tabla en un
-       archivo PDF."""
-
     def __init__(self, titulo, cabecera, datos, nombrePDF):
-        super(reportePDF, self).__init__()
-
         self.titulo = titulo
         self.cabecera = cabecera
         self.datos = datos
         self.nombrePDF = nombrePDF
-
         self.estilos = getSampleStyleSheet()
 
     @staticmethod
     def _encabezadoPiePagina(canvas, archivoPDF):
-        """Guarde el estado de nuestro lienzo para que podamos aprovecharlo"""
-
         canvas.saveState()
         estilos = getSampleStyleSheet()
 
-        alineacion = ParagraphStyle(name="alineacion", alignment=TA_RIGHT,
-                                    parent=estilos["Normal"])
+        alineacion = ParagraphStyle(name="alineacion", alignment=TA_RIGHT, parent=estilos["Normal"])
 
         # Encabezado
         encabezadoNombre = Paragraph("Andres Niño 1.0", estilos["Normal"])
         anchura, altura = encabezadoNombre.wrap(archivoPDF.width, archivoPDF.topMargin)
         encabezadoNombre.drawOn(canvas, archivoPDF.leftMargin, 736)
 
-        fecha = utcnow().to("local").format("dddd, DD - MMMM - YYYY", locale="es")
+        fecha = datetime.now().strftime("%A, %d - %B - %Y")
         fechaReporte = fecha.replace("-", "de")
 
         encabezadoFecha = Paragraph(fechaReporte, alineacion)
@@ -285,18 +304,10 @@ class reportePDF(object):
         anchura, altura = piePagina.wrap(archivoPDF.width, archivoPDF.bottomMargin)
         piePagina.drawOn(canvas, archivoPDF.leftMargin, 15 * mm + (0.2 * inch))
 
-        # Suelta el lienzo
         canvas.restoreState()
 
     def convertirDatos(self):
-        """Convertir la lista de diccionarios a una lista de listas para crear
-           la tabla PDF."""
-
-        estiloEncabezado = ParagraphStyle(name="estiloEncabezado", alignment=TA_LEFT,
-                                          fontSize=10, textColor=white,
-                                          fontName="Helvetica-Bold",
-                                          parent=self.estilos["Normal"])
-
+        estiloEncabezado = ParagraphStyle(name="estiloEncabezado", alignment=TA_LEFT, fontSize=10, textColor=colors.white, fontName="Helvetica-Bold", parent=self.estilos["Normal"])
         estiloNormal = self.estilos["Normal"]
         estiloNormal.alignment = TA_LEFT
 
@@ -306,16 +317,28 @@ class reportePDF(object):
         nuevosDatos = [tuple(encabezado)]
 
         for dato in self.datos:
-            nuevosDatos.append([Paragraph(str(dato[clave]), estiloNormal) for clave in claves])
+            fila_datos = []
+            for clave in claves:
+                valor = dato[clave]
+                if valor is None:
+                    valor = "N/A"  # O un valor como "N/A", "Sin asignar", etc.
+                fila_datos.append(Paragraph(str(valor), estiloNormal))
+            nuevosDatos.append(fila_datos)
 
         return nuevosDatos
 
-    def Exportar(self):
-        """Exportar los datos a un archivo PDF."""
-
-        alineacionTitulo = ParagraphStyle(name="centrar", alignment=TA_CENTER, fontSize=13,
-                                          leading=10, textColor=purple,
-                                          parent=self.estilos["Heading1"])
+    def Exportar(self, buffer):
+        """
+    Exportar los datos a un archivo PDF en memoria (buffer).
+    """
+        alineacionTitulo = ParagraphStyle(
+            name="centrar",
+            alignment=TA_CENTER,
+            fontSize=13,
+            leading=10,
+            textColor=colors.purple,
+            parent=self.estilos["Heading1"]
+        )
 
         self.ancho, self.alto = letter
 
@@ -323,34 +346,38 @@ class reportePDF(object):
 
         tabla = Table(convertirDatos, colWidths=(self.ancho-100)/len(self.cabecera), hAlign="CENTER")
         tabla.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0),(-1, 0), purple),
+            ("BACKGROUND", (0, 0),(-1, 0), colors.purple),
             ("ALIGN", (0, 0),(0, -1), "LEFT"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), # Texto centrado y alineado a la izquierda
-            ("INNERGRID", (0, 0), (-1, -1), 0.50, black), # Lineas internas
-            ("BOX", (0, 0), (-1, -1), 0.25, black), # Linea (Marco) externa
-            ]))
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("INNERGRID", (0, 0), (-1, -1), 0.50, colors.black),
+            ("BOX", (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
 
         historia = []
         historia.append(Paragraph(self.titulo, alineacionTitulo))
         historia.append(Spacer(1, 0.16 * inch))
         historia.append(tabla)
+        
 
-        archivoPDF = SimpleDocTemplate(self.nombrePDF, leftMargin=50, rightMargin=50, pagesize=letter,
-                                       title="Reporte PDF", author="Andres Niño")
-
+            # Crear el PDF en el buffer
+        archivoPDF = SimpleDocTemplate(
+            buffer,
+            leftMargin=50,
+            rightMargin=50,
+            pagesize=letter,
+            title="Reporte PDF",
+            author="Andres Niño"
+        )
         try:
-            archivoPDF.build(historia, onFirstPage=self._encabezadoPiePagina,
-                             onLaterPages=self._encabezadoPiePagina,
-                             canvasmaker=numeracionPaginas)
-
-         # +------------------------------------+
-            return "Reporte generado con éxito."
-         # +------------------------------------+
+            archivoPDF.build(
+                historia,
+                onFirstPage=self._encabezadoPiePagina,
+                onLaterPages=self._encabezadoPiePagina,
+                canvasmaker=numeracionPaginas
+            )
+            return buffer  # Devuelve el buffer con el contenido del PDF
         except PermissionError:
-         # +--------------------------------------------+
-            return "Error inesperado: Permiso denegado."
-         # +--------------------------------------------+
-
+            return None  # Devuelve None si hay un error
 
 # ================== CLASE numeracionPaginas =======================
 
@@ -376,7 +403,93 @@ class numeracionPaginas(canvas.Canvas):
         self.drawRightString(204 * mm, 15 * mm + (0.2 * inch),
                              "Página {} de {}".format(self._pageNumber, conteoPaginas))
 
+def generarReporteCompletoPedidos():
+    def dict_factory(cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
 
+    conexion_MySQLdb = connectionBD()
+    conexion_MySQLdb.row_factory = dict_factory
+    cursor = conexion_MySQLdb.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            ciudad.codigo_ciudad, 
+            ciudad.nombre_ciudad AS ciudad, 
+            estado.nombre_estado AS estado,
+            direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+            persona.nombre AS nombre_cliente, 
+            persona.apellido AS apellido_cliente, 
+            persona.cedula AS cedula_cliente,
+            telefono.prefijo_telefonico, 
+            telefono.numero, 
+            cliente.cedula,
+            pedido.codigo_pedido, 
+            pedido.fecha_pedido, 
+            pedido.cedula_cliente, 
+            pedido.cedula_empleado_registra, 
+            pedido.codigo_estadoDeProceso,
+             COALESCE(pedido.fecha_inicio_trabajo, 'No iniciado') AS fecha_inicio_trabajo,  -- Manejo de NULL en fecha_inicio_trabajo
+            COALESCE(pedido.fecha_fin_trabajo, 'No finalizado') AS fecha_fin_trabajo,  -- Manejo de NULL en fecha_fin_trabajo
+            COALESCE(pedido.total_a_pagar, 0) AS total_a_pagar,  -- Manejo de NULL en total_a_pagar (valor numérico) 
+            pedido.cancelado, 
+            COALESCE(pago.tipo_moneda, 'No especificado') AS tipo_moneda,  -- Manejo de NULL en tipo_moneda
+            COALESCE(pago.fecha_pago, 'No especificado') AS fecha_pago,  -- Manejo de NULL en fecha_pago
+            COALESCE(servicio.tipo, 'No especificado') AS tipo_servicio,  -- Manejo de NULL en servicio.tipo (renombrado para claridad)
+            COALESCE(servicio.descripcion, 'No especificado') AS servicio_descripcion,
+            COALESCE (servicio.codigo_servicio, 'No especificado') AS codigo_servicio,
+            estadoDeProceso.descripcion AS estado_pedido,
+            COALESCE(tecnico.cedula, 'Sin asignar') AS cedula_tecnico,  -- Manejo de NULL en cedula_tecnico
+            COALESCE(tecnico.nombre, 'Sin asignar') AS nombre_tecnico,  -- Manejo de NULL en nombre_tecnico
+            COALESCE(tecnico.apellido, 'Sin asignar') AS apellido_tecnico,  -- Manejo de NULL en apellido_tecnico
+            empleado.nombre AS nombre_empleado, 
+            empleado.apellido AS apellido_empleado
+        FROM estado 
+        JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+        JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+        JOIN persona ON direccion.cedula = persona.cedula 
+        JOIN telefono ON persona.cedula = telefono.cedula
+        JOIN cliente ON cliente.cedula = persona.cedula
+        JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+        JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+        LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+        LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+        JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+        LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
+        LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio 
+        LEFT JOIN pago ON pago.codigo_pedido = pedido.codigo_pedido                  
+        ORDER BY pedido.codigo_pedido DESC;
+    """)
+    datos = cursor.fetchall()
+
+    conexion_MySQLdb.close()
+
+    titulo = "REPORTE COMPLETO DE PEDIDOS"
+
+    cabecera = (
+        ("codigo_pedido", "CÓDIGO PEDIDO"),
+        ("nombre_cliente", "NOMBRE CLIENTE"),
+        ("apellido_cliente", "APELLIDO CLIENTE"),
+        ("fecha_pedido", "FECHA PEDIDO"),
+        ("estado_pedido", "ESTADO PEDIDO"),
+        ("total_a_pagar", "TOTAL A PAGAR"),
+        ("cancelado", "CANCELADO"),
+        ("nombre_tecnico", "TÉCNICO ASIGNADO"),
+        ("nombre_empleado", "EMPLEADO REGISTRADOR"),
+    )
+
+
+    buffer = io.BytesIO()
+    reporte = reportePDF(titulo, cabecera, datos, buffer)
+    buffer = reporte.Exportar(buffer)  # Pasar el buffer a Exportar
+
+    if buffer:
+        buffer.seek(0)
+        return buffer.getvalue()  # Devuelve el contenido del PDF
+    else:
+        raise Exception("Error al generar el reporte.")
 # ===================== FUNCIÓN generarReporte =====================
 
 def generarReporte(reporte):

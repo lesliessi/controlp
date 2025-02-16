@@ -595,6 +595,8 @@ def edit(cedula):
 
     return redirect(url_for('verRegistrosEmpleados'))
 
+
+
 @app.route('/editRolUsuario/<string:codigo_usuario>', methods=['POST'])
 def editRolUsuario(codigo_usuario):
     codigo_rol   = request.form['rol']
@@ -705,6 +707,68 @@ def editPedido(cedula):
         cursor.close()
     return redirect(url_for('verRegistrosPedidos')) 
 
+@app.route('/editPedidoProceso/<string:cedula>', methods=['POST'])
+def editPedidoProceso(cedula):
+    
+    
+    tecnico            = request.form['tecnico']
+    codigo_pedido       = request.form['codigo_pedido']
+    fecha_inicio_trabajo = request.form['fecha_inicio_trabajo']
+    servicio            = request.form['servicio']
+    
+
+    if request.method== 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql1= "UPDATE pedido SET  fecha_inicio_trabajo = %s WHERE codigo_pedido = %s"
+        data1= (fecha_inicio_trabajo, codigo_pedido,)
+        cursor.execute(sql1, data1)
+        conexion_MySQLdb.commit()
+        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
+        data2= (tecnico, codigo_pedido,)
+        cursor.execute(sql2, data2)
+        conexion_MySQLdb.commit()
+        sql3 = "UPDATE pedido_corresponde_a_servicio SET codigo_servicio = %s WHERE codigo_pedido = %s"
+        data3 = (servicio, codigo_pedido,)    
+        cursor.execute(sql3, data3)
+        conexion_MySQLdb.commit()
+        cursor.close()
+        flash ('Datos actualizados correctamente.')
+
+    return redirect(url_for('verRegistrosPedidos'))
+
+@app.route('/editPedidoPendiente/<string:cedula>', methods=['POST'])
+def editPedidoPendiente(cedula):
+    
+    
+    tecnico            = request.form['tecnico']
+    codigo_pedido       = request.form['codigo_pedido']
+    fecha_inicio_trabajo = request.form['fecha_inicio_trabajo']
+    servicio            = request.form['servicio']
+    total_a_pagar       = request.form['total_a_pagar']
+    fecha_fin_trabajo   = request.form['fecha_fin_trabajo']
+    
+
+    if request.method== 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql1= "UPDATE pedido SET  fecha_inicio_trabajo = %s, fecha_fin_trabajo = %s, total_a_pagar = %s WHERE codigo_pedido = %s"
+        data1= (fecha_inicio_trabajo,fecha_fin_trabajo,total_a_pagar, codigo_pedido,)
+        cursor.execute(sql1, data1)
+        conexion_MySQLdb.commit()
+        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
+        data2= (tecnico, codigo_pedido,)
+        cursor.execute(sql2, data2)
+        conexion_MySQLdb.commit()
+        sql3 = "UPDATE pedido_corresponde_a_servicio SET codigo_servicio = %s WHERE codigo_pedido = %s"
+        data3 = (servicio, codigo_pedido,)    
+        cursor.execute(sql3, data3)
+        conexion_MySQLdb.commit()
+        cursor.close()
+        flash ('Datos actualizados correctamente.')
+
+    return redirect(url_for('verRegistrosPedidos')) 
+
 
 @app.route('/actualizarPedido/<string:codigo_pedido>', methods=['POST'])
 def ActualizarPedido(codigo_pedido):
@@ -727,17 +791,18 @@ def ActualizarPedido(codigo_pedido):
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
         sql = """UPDATE pedido 
-SET 
-    fecha_inicio_trabajo = COALESCE(%s, fecha_inicio_trabajo),
-    fecha_fin_trabajo = COALESCE(%s, fecha_fin_trabajo),
-    cancelado = COALESCE(%s, cancelado),
-    total_a_pagar = COALESCE (%s, total_a_pagar)
+        SET 
+        fecha_inicio_trabajo = COALESCE(%s, fecha_inicio_trabajo),
+        fecha_fin_trabajo = COALESCE(%s, fecha_fin_trabajo),
+        cancelado = COALESCE(%s, cancelado),
+        total_a_pagar = COALESCE(%s, total_a_pagar)
 
-WHERE codigo_pedido = %s;"""
+        WHERE codigo_pedido = %s;"""
         # Convertir valores vacíos de fecha fin trabajo a None
         fecha_fin_trabajo = fecha_fin_trabajo if fecha_fin_trabajo else None
+        total_a_pagar = total_a_pagar if total_a_pagar else None
         
-        data = (fecha_inicio_trabajo, fecha_fin_trabajo, cancelado,total_a_pagar, codigo_pedido,)
+        data = (fecha_inicio_trabajo, fecha_fin_trabajo, cancelado, total_a_pagar, codigo_pedido,)
         cursor.execute(sql, data)
         conexion_MySQLdb.commit()
         cursor.close()
@@ -748,7 +813,93 @@ WHERE codigo_pedido = %s;"""
         cursor.execute(sql2, data2)
         conexion_MySQLdb.commit()
 
-        if fecha_pago or tipo_moneda or metodo_pago:
+        if cancelado == '1':
+            cursor = conexion_MySQLdb.cursor()
+            referencia = referencia if referencia else None  
+            sql3= """INSERT INTO pago (fecha_pago, tipo_moneda, metodo_pago, referencia_pago, codigo_pedido) VALUES (%s, %s, %s, %s, %s)"""
+            data3= (fecha_pago, tipo_moneda, metodo_pago, referencia,  codigo_pedido,)
+            cursor.execute(sql3, data3)
+            conexion_MySQLdb.commit()
+            flash( "Pedido actualizado correctamente")
+            return redirect(url_for('verRegistrosPedidosCompletados'))
+        cursor.close()
+        flash( "Pedido actualizado correctamente")
+
+    return redirect(url_for('verRegistrosPedidos'))
+
+
+@app.route('/actualizarPedidoProceso/<string:codigo_pedido>', methods=['POST'])
+def actualizarPedidoProceso(codigo_pedido):
+
+    conexion_MySQLdb = connectionBD()
+
+      
+    fecha_fin_trabajo = request.form.get('fecha_fin_trabajo')  
+    cancelado = request.form.get('cancelado')  # Convertir a Booleano
+    fecha_pago = request.form.get('fecha_pago')  
+    tipo_moneda = request.form.get('tipo_moneda')  
+    metodo_pago = request.form.get('metodo_pago')  
+    codigo_pedido = request.form.get('codigo_pedido')  
+    referencia = request.form.get('referencia')
+    total_a_pagar = request.form.get('total_a_pagar')
+
+    if request.method == 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql = """UPDATE pedido 
+        SET 
+        fecha_fin_trabajo = COALESCE(%s, fecha_fin_trabajo),
+        cancelado = COALESCE(%s, cancelado),
+        total_a_pagar = COALESCE(%s, total_a_pagar)
+        WHERE codigo_pedido = %s;"""
+        
+        data = (fecha_fin_trabajo, cancelado, total_a_pagar, codigo_pedido,)
+        cursor.execute(sql, data)
+        conexion_MySQLdb.commit()
+        cursor.close()
+
+        if cancelado == '1':
+            cursor = conexion_MySQLdb.cursor()
+            referencia = referencia if referencia else None  
+            sql3= """INSERT INTO pago (fecha_pago, tipo_moneda, metodo_pago, referencia_pago, codigo_pedido) VALUES (%s, %s, %s, %s, %s)"""
+            data3= (fecha_pago, tipo_moneda, metodo_pago, referencia,  codigo_pedido,)
+            cursor.execute(sql3, data3)
+            conexion_MySQLdb.commit()
+            flash( "Pedido actualizado correctamente")
+            return redirect(url_for('verRegistrosPedidosCompletados'))
+        cursor.close()
+        flash( "Pedido actualizado correctamente")
+
+    return redirect(url_for('verRegistrosPedidos'))
+@app.route('/actualizarPedidoPendiente/<string:codigo_pedido>', methods=['POST'])
+def actualizarPedidoPendiente(codigo_pedido):
+
+    conexion_MySQLdb = connectionBD()
+
+      
+    cancelado = request.form.get('cancelado')  # Convertir a Booleano
+    fecha_pago = request.form.get('fecha_pago')  
+    tipo_moneda = request.form.get('tipo_moneda')  
+    metodo_pago = request.form.get('metodo_pago')  
+    codigo_pedido = request.form.get('codigo_pedido')  
+    referencia = request.form.get('referencia')
+
+    if request.method == 'POST':
+        conexion_MySQLdb = connectionBD()
+        cursor = conexion_MySQLdb.cursor()
+        sql = """UPDATE pedido 
+        SET 
+        cancelado = COALESCE(%s, cancelado)
+        WHERE codigo_pedido = %s;"""
+        # Convertir valores vacíos de fecha fin trabajo a None
+        
+        data = (cancelado, codigo_pedido,)
+        cursor.execute(sql, data)
+        conexion_MySQLdb.commit()
+        cursor.close()
+
+        if cancelado == '1':
+            cursor = conexion_MySQLdb.cursor()
             referencia = referencia if referencia else None  
             sql3= """INSERT INTO pago (fecha_pago, tipo_moneda, metodo_pago, referencia_pago, codigo_pedido) VALUES (%s, %s, %s, %s, %s)"""
             data3= (fecha_pago, tipo_moneda, metodo_pago, referencia,  codigo_pedido,)
@@ -757,7 +908,7 @@ WHERE codigo_pedido = %s;"""
         cursor.close()
         flash( "Pedido actualizado correctamente")
 
-    return redirect(url_for('verRegistrosPedidos'))
+    return redirect(url_for('verRegistrosPedidosCompletados'))
 
 @app.route('/deleteServicio/<string:codigo_servicio>')
 def deleteServicio(codigo_servicio):
