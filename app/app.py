@@ -10,6 +10,7 @@ from reportes import *
 from routes import * #Vistas
 
 import bcrypt 
+import hashlib
 
 import tkinter
 
@@ -106,6 +107,27 @@ def hash_contraseña(contraseña):
     salt = bcrypt.gensalt()
     hashed_contraseña = bcrypt.hashpw(contraseña.encode('utf-8'), salt)
     return hashed_contraseña
+
+def hash_para_comparar(contraseña):
+    return hashlib.sha256(contraseña.encode('utf-8')).hexdigest()
+
+def nivel_seguridad(contraseña, hashes_sha256_existentes):
+    longitud_ok = len(contraseña) >= 8
+    mayuscula_ok = re.search(r'[A-Z]', contraseña)
+    numero_ok = re.search(r'\d', contraseña)
+    especial_ok = re.search(r'[!@#$%^&*(),.?":{}|<>]', contraseña)
+
+    requisitos = all([longitud_ok, mayuscula_ok, numero_ok, especial_ok])
+    hash_actual = hash_para_comparar(contraseña)
+
+    if requisitos and hash_actual not in hashes_sha256_existentes:
+        return "muy alto"
+    elif requisitos and hash_actual in hashes_sha256_existentes:
+        return "alto"
+    elif any([longitud_ok, mayuscula_ok, numero_ok, especial_ok]):
+        return "medio"
+    else:
+        return "bajo"
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
@@ -243,95 +265,106 @@ def registerUser2():
 @app.route('/registro-usuario-3', methods=['GET', 'POST'])
 def registerUser3():
     msg = ''
-    conexion_MySQLdb = connectionBD()  
-    
+    conexion_MySQLdb = connectionBD()
 
     if request.method == 'POST':
-        pregunta_seguridad                       = request.form['pregunta_seguridad']
-        contraseña                       = request.form['contraseña']
-        repetir_contraseña                       = request.form['repetir_contraseña']
+        pregunta_seguridad = request.form['pregunta_seguridad']
+        contraseña = request.form['contraseña']
+        repetir_contraseña = request.form['repetir_contraseña']
 
-        session ['pregunta_seguridad']=pregunta_seguridad
-        session ['contraseña']=contraseña
-        session ['repetir_contraseña']=repetir_contraseña
+        session['pregunta_seguridad'] = pregunta_seguridad
+        session['contraseña'] = contraseña
+        session['repetir_contraseña'] = repetir_contraseña
 
-        cedula = session.get ('cedula')
-        nombre = session.get ('nombre')
-        apellido = session.get ('apellido')
-        prefijo_telefonico = session.get ('prefijo_telefonico')
-        numero= session.get ('numero')
-        tipo = session.get ('tipo')
-        cargo = session.get ('cargo')
-        usuario = session.get ('usuario')       
-            
+        cedula = session.get('cedula')
+        nombre = session.get('nombre')
+        apellido = session.get('apellido')
+        prefijo_telefonico = session.get('prefijo_telefonico')
+        numero = session.get('numero')
+        tipo = session.get('tipo')
+        cargo = session.get('cargo')
+        usuario = session.get('usuario')
+
         if contraseña != repetir_contraseña:
-                flash ('Las contraseñas no coinciden.')
-                return render_template(
-                'login/registerUser3.html',
-                msjAlert=msg,
-                typeAlert=1,
-                pregunta_seguridad=pregunta_seguridad,
-                contraseña=contraseña,
-                repetir_contraseña=repetir_contraseña
-            )
-            
-        elif not contraseña or not contraseña or not repetir_contraseña:
-                flash ('El formulario no debe estar vacio.')
-        else:
-            hashed = hash_contraseña(contraseña)
-            print(hashed)
-            try:
-                conexion_MySQLdb = connectionBD()
-                SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
-                val= (cedula, nombre, apellido)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL, val)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
-                val1= (cedula, cargo, tipo)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL1, val1)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol) VALUES (%s, %s, %s, %s, %s)"
-                val2= (cedula, usuario, hashed, pregunta_seguridad, '2')
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL2, val2)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL3="INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
-                val3= (prefijo_telefonico, numero, cedula)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL3, val3)
-                conexion_MySQLdb.commit()
-                cursor.close()
+            flash('Las contraseñas no coinciden.')
+            return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1,
+                                   pregunta_seguridad=pregunta_seguridad,
+                                   contraseña=contraseña,
+                                   repetir_contraseña=repetir_contraseña)
 
-                flash ('Usuario registrado exitosamente.')
+        elif not contraseña or not repetir_contraseña:
+            flash('El formulario no debe estar vacío.')
+            return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1)
 
+        # Obtener hashes SHA256 de la base de datos
+        cursor = conexion_MySQLdb.cursor(dictionary=True)
+        cursor.execute('SELECT contraseña_sha256 FROM usuario')
+        hashes_existentes = [fila['contraseña_sha256'] for fila in cursor.fetchall()]
+        cursor.close()
 
-                # Limpiar sesión al completar el registro exitoso
-                session.clear()
-                    
-                flash ('Usuario registrado exitosamente.')
+        nivel = nivel_seguridad(contraseña, hashes_existentes)
 
-                return render_template('login/login.html', msjAlert = msg, typeAlert=1)
-            
-            except Exception as e:
-                conexion_MySQLdb.rollback()
-                flash(f'Error al crear la cuenta: {str(e)}')
-                return render_template(
-                    'login/registerUser3.html',
-                    msjAlert=msg,
-                    typeAlert=1,
-                    pregunta_seguridad=pregunta_seguridad,
-                    contraseña=contraseña,
-                    repetir_contraseña=repetir_contraseña
-                )
-             
-        return render_template('login/registerUser3.html', msjAlert = msg, typeAlert=1)  
+        if nivel != "muy alto":
+            flash(f'La contraseña tiene un nivel de seguridad: "{nivel.upper()}". Mejora la contraseña para continuar.')
+            return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1,
+                                   pregunta_seguridad=pregunta_seguridad,
+                                   contraseña=contraseña,
+                                   repetir_contraseña=repetir_contraseña)
 
-    return render_template('login/registerUser3.html', msjAlert = msg, typeAlert=0, )
+        hashed = hash_contraseña(contraseña)
+        hash_comparacion = hash_para_comparar(contraseña)
+
+        try:
+            # Insert persona
+            SQL = "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)"
+            val = (cedula, nombre, apellido)
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute(SQL, val)
+            conexion_MySQLdb.commit()
+            cursor.close()
+
+            # Insert empleado
+            SQL1 = "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
+            val1 = (cedula, cargo, tipo)
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute(SQL1, val1)
+            conexion_MySQLdb.commit()
+            cursor.close()
+
+            # Insert usuario con contraseña y hash SHA256
+            SQL2 = """INSERT INTO usuario 
+                      (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol, contraseña_sha256) 
+                      VALUES (%s, %s, %s, %s, %s, %s)"""
+            val2 = (cedula, usuario, hashed, pregunta_seguridad, '2', hash_comparacion)
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute(SQL2, val2)
+            conexion_MySQLdb.commit()
+            cursor.close()
+
+            # Insert teléfono
+            SQL3 = "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
+            val3 = (prefijo_telefonico, numero, cedula)
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute(SQL3, val3)
+            conexion_MySQLdb.commit()
+            cursor.close()
+
+            session.clear()
+            flash('Usuario registrado exitosamente.')
+            return render_template('login/login.html', msjAlert=msg, typeAlert=1)
+
+        except Exception as e:
+            conexion_MySQLdb.rollback()
+            flash(f'Error al crear la cuenta: {str(e)}')
+            return render_template('login/registerUser3.html',
+                                   msjAlert=msg,
+                                   typeAlert=1,
+                                   pregunta_seguridad=pregunta_seguridad,
+                                   contraseña=contraseña,
+                                   repetir_contraseña=repetir_contraseña)
+
+    return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=0)
+
 
 
 @app.route('/registrar-empleado', methods=['GET', 'POST'])
