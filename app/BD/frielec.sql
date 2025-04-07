@@ -309,7 +309,7 @@ CREATE TABLE `usuario` (
   `codigo_usuario` int NOT NULL AUTO_INCREMENT,
   `cedula` int NOT NULL,
   `usuario` varchar(50) NOT NULL,
-  `pregunta_seguridad` varchar(50) NOT NULL,
+  `respuesta_seguridad` varchar(50) NOT NULL,
   `rol` int NOT NULL,
   `contraseña` blob,
   PRIMARY KEY (`codigo_usuario`),

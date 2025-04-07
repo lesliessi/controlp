@@ -58,7 +58,14 @@
     
                              
                               <label>Tipo</label>
-                              <input type="text" class="form-control mb-3" name="tipo" value="{{d.tipo}}">
+                              <select name="tipo" class="form-control" required>
+                                <option value="{{d.tipo}}" selected="selected">{{d.tipo}}</option>
+                                {% if d.tipo == 'Correctivo' %}
+                                  <option>Preventivo</option>
+                                {%else %}
+                                <option>Correctivo</option>
+                                {% endif %}
+                              </select>
                               <label>Descripción</label>
                               <input type="text" class="form-control mb-3" name="descripcion" value="{{d.descripcion}}">
                               <label>Código de servicio</label>

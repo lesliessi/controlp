@@ -1,0 +1,201 @@
+<title>Pedidos registrados</title>
+
+{% extends "dashboard/basemenu.html" %}
+
+{% block title %}Pedidos Registrados{% endblock %}
+
+
+
+{% block sidebar %}{% endblock %}
+
+
+
+{% block content %} 
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/verPedidos1.css')}}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <main class=" px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <ul class=" nav nav-tabs">
+          <a class="h4 nav-link "style="color: black;" href="{{url_for('verRegistrosPedidos')}}">Pedidos en curso</a>
+       
+          <a class=" h4 nav-link active" href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
+        
+      </ul>  
+      <a type="button"  href="{{url_for('generar_reporte_completo_pedidos')}}" class="btn btn-light">Exportar PDF</a>
+  </div>
+
+<div class="filtros-container">     
+  
+  <div></div>
+<div class="filtro-fecha" style="justify-content: right;">
+    <label for="orden-fecha">Ordenar por fecha:</label>
+    <select id="orden-fecha" class="filtro-select">
+        <option value="reciente">Más Reciente</option>
+        <option value="antiguo">Más Antiguo</option>
+    </select>
+</div>
+</div> 
+  <div id="pedidos-container">
+
+    {% for d in dataPedidos4 %}
+    <div class="pedido-item"data-fecha="{{ d.fecha_pedido }}"style="
+      
+        border-left: 5px solid #75dd71;
+      
+    ">
+  
+        <div class="pedido-info">
+          <div><strong>Cliente:</strong> {{ d.nombre_cliente }} {{ d.apellido_cliente }}  
+          <div class="text-muted" style="font-size: 12px;"><strong>Fecha del trabajo:</strong> {{d.fecha_inicio_trabajo}} - {{d.fecha_fin_trabajo}}</div>
+          <div><strong>Estado de pedido:</strong> {{ d.estado_pedido }}</div>
+  
+            <div class="extra-info">
+                          <strong>Técnico encargado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }}</div>
+                          <div><strong></strong>   
+                <strong>Fecha:</strong> {{ d.fecha_pedido }}</div>
+                
+            </di>
+        </div>
+    
+   
+        <div class="botones">
+          
+          <button class="btn btn-sm"  id="btn-edit{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modalCompletado{{d.codigo_pedido}}
+          ">Ver detalles</button>
+          
+        </div>
+   
+</div>
+
+    </div>
+  {% endfor %}
+
+
+
+              <!-- modal -->
+
+              {% for d in dataPedidos4 %}
+  
+ 
+                              <!-- modal editar y ver detalles pedidos pendientes de pago-->
+
+              
+                          <div class="modal fade" id="modalCompletado{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/editPedidoCompletado/{{d.codigo_pedido}}" method="post">
+              
+                                      
+                                      <label for="cliente" class="form-label mt-1">Cliente: {{d.nombre_cliente}} {{d.apellido_cliente}}</label>
+                                                            
+                                       <div> <label>Código de pedido</label></div>
+                                        <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
+                                        <label for="tecnico" class="form-label mt-1">Técnicos asignados</label>
+                                        <textarea readonly name="tecnico" class="form-control" required>{{ d.nombres_tecnicos }}</textarea>
+                                          
+                                          <label>Fecha del pedido</label>
+                                          <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
+
+                                        <label for="servicio" class="form-label mt-1">Servicios prestados</label>
+                                        <textarea readonly name="servicio" class="form-control" id="servicio" required>{{d.nombres_servicios_correctivos}}, {{d.nombres_servicios_preventivos}}</textarea>                                          
+                                        <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
+                                        <input class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
+                                        <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
+                                        <input value="{{d.fecha_fin_trabajo}}" class="form-control  "required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+                                        
+                                        <label for="total a pagar">Total cancelado</label>
+                                        <div value="{{d.total_a_pagar}}" class="form-control" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" >{{d.total_a_pagar}}</div>
+                                              <label>Fecha de pago</label>
+                                        <input type="text" name="fecha_pago" class="form-control fecha_pago" id="fecha_pago" value="{{d.fecha_pago}}">
+
+                                        <label>Tipo de moneda</label>
+                                        <select id="tipo_moneda{{ d.codigo_pedido }}" class="form-control tipo-moneda" name="tipo_moneda">
+                                          <option value="{{ d.tipo_moneda }}" selected>
+                                            {% if d.tipo_moneda == 'bolivares' %}
+                                                {% set moneda = 'Bolívares' %}
+                                            {% else %}
+                                                {% set moneda = 'Divisas' %}
+                                            {% endif %}
+                                            {{ moneda }}
+                                        </option>                                          
+                                        {% if d.tipo_moneda == 'divisas' %}
+                                              <option value="bolivares">Bolívares</option>
+                                          {% else %}
+                                              <option value="divisas">Divisas</option>
+                                          {% endif %}
+                                      </select>
+
+                                                  <label>Método de pago</label>
+                                                  <input value="{{d.metodo_pago}}" class="form-control metodo-pago" name="metodo_pago" readonly>
+
+                                                  <label>Referencia</label>
+                                                  <input type="number" value="{{d.referencia_pago}}" class="form-control" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                                              </div>
+                                          
+                                     
+                                           <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+
+                                            <div class="modal-footer">
+                                            </div>
+                                                </form>
+                                              </div>
+                                            </div>
+                                          </div>
+                          
+                            
+                                  </div>
+                                </div>
+                              </div>
+
+                  <!-- modal para borrar-->
+
+                  <div class="modal fade" id="modaleliminar{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>¿Está seguro de que desea eliminar este registro?</p>
+                          <div class="modal-footer">
+                            <a href="{{url_for('deletePedido', codigo_pedido=d.codigo_pedido)}}" class="btn btn-danger btn-sm">Eliminar</a>
+                            <button type="button" data-bs-dismiss="modal" class="btn btn-sm" id="cancelarEliminar">Cancelar</button>
+                        </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div> 
+        
+
+                  
+                  
+              {% endfor %}
+  
+  
+  
+  
+                </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"> </script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+<script>
+  flatpickr("#fecha_pedido", {
+      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
+      enableTime: false,     // Deshabilitar hora (solo fecha)
+      locale: "es"           // Español
+  });
+</script>
+
+</script>
+
+
+{% endblock %}

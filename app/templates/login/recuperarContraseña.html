@@ -72,15 +72,7 @@
                               <div class="invalid-feedback" style="text-justify: auto;">
                               </div>
                               </div>
-                          <div class="text-justify">
-                              <label for="pregunta_seguridad" style="color: #ffff;">Pregunta de seguridad</label>
-                          </div>
-                              <div data-mdb-input-init class="form-outline mb-4">
-                                <input placeholder="Nombre de tu primera mascota" class="form-control form-control-lg" type="text"id="pregunta_seguridad" name="pregunta_seguridad" pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+"  oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" required>
-                                <div class="invalid-feedback">
-                                </div>
-                              </div>
-            
+                          
                               <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;" class="w-100 btn btn-lg btn btn-light btn-lg btn-block" type="submit">Enviar</button>
 
             
@@ -153,7 +145,6 @@ document.getElementById("recuperarContraseña").addEventListener("submit", funct
 
       // Guardar datos del formulario en localStorage
       localStorage.setItem("usuario", document.getElementById("usuario").value);
-      localStorage.setItem("pregunta_seguridad", document.getElementById("pregunta_seguridad").value);
 
       
       // Validar el formulario
@@ -169,9 +160,7 @@ document.getElementById("recuperarContraseña").addEventListener("submit", funct
       if (localStorage.getItem("usuario")) {
           document.getElementById("usuario").value = localStorage.getItem("usuario");
       }
-      if (localStorage.getItem("pregunta_seguridad")) {
-          document.getElementById("pregunta_seguridad").value = localStorage.getItem("pregunta_seguridad");
-      }
+      
       
     };
 
@@ -180,10 +169,8 @@ function limpiarLocalStorage() {
     localStorage.removeItem("usuario");
     
 }
-function limpiarLocalStorage() {
-    localStorage.removeItem("pregunta_seguridad");
     
-}
+
   
 </script>
 

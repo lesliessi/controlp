@@ -129,18 +129,10 @@
                                  title="Campo obligatorio." required>
                                   <option class="text-black" value="Administrativo">Administrativo</option></select>
                                   <div class="invalid-feedback">
-                                    Selecciona una opción
                                   </div>
                                 </div>
               
-                              <div data-mdb-input-init class="form-outline">
-                                 <label for="cargo" class="form-label">Cargo</label>
-                                  <input id="cargo" type="text" name="cargo" 
-                                  oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+"
-                                   title="Campo no obligatorio" class="form-control">
-                                  <div class="valid-feedback">
-                                  </div>
-                                </div>
+                              
                             </div>
                             
                           
@@ -247,7 +239,6 @@ document.getElementById("registerUser").addEventListener("submit", function(even
     localStorage.setItem("numero", document.getElementById("numero").value);
     localStorage.setItem("nombre", document.getElementById("nombre").value);
     localStorage.setItem("apellido", document.getElementById("apellido").value);
-    localStorage.setItem("cargo", document.getElementById("cargo").value);
     
 
     // Validar el formulario
@@ -274,9 +265,7 @@ window.onload = function() {
     if (localStorage.getItem("apellido")) {
         document.getElementById("apellido").value = localStorage.getItem("apellido");
     }
-    if (localStorage.getItem("cargo")) {
-        document.getElementById("cargo").value = localStorage.getItem("cargo");
-    }
+    
 
   
   };
@@ -287,7 +276,6 @@ function limpiarLocalStorage() {
     localStorage.removeItem("numero");
     localStorage.removeItem("nombre");
     localStorage.removeItem("apellido");
-    localStorage.removeItem("cargo");
 }
 </script>
 </body>

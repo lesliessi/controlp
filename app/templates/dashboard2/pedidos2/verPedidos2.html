@@ -14,237 +14,470 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/verPedidos1.css')}}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-    <main class=" px-md-4">
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Pedidos registrados</h1>
-        <button type="button" href="#" class="btn btn-light">Exportar PDF</button>
-      
+<main class=" px-md-4">
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <ul class=" nav nav-tabs">
+      <a class="h4 nav-link active">Pedidos en curso</a>
+   
+      <a class=" h4 nav-link " style="color: black;"href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
+    
+  </ul>  
+  <a type="button"  href="{{url_for('generar_reporte_completo_pedidos')}}" class="btn btn-light">Exportar PDF</a>
+</div>
+
+<div class="filtros-container">     
+
+<div class="filtro-botones">
+<button onclick="filtrarPedidos('todos')" class="btn filtro-btn" style="border-radius: 25px;">Todos</button>
+<button onclick="filtrarPedidos('por-atender')" class="btn filtro-btn btn-1">Por Atender</button>
+<button onclick="filtrarPedidos('en-proceso')" class="btn filtro-btn btn-2">En Proceso</button>
+<button onclick="filtrarPedidos('pendiente-pago')" class="btn filtro-btn btn-3">Pendiente de Pago</button>
+</div>
+<div class="filtro-fecha">
+<label for="orden-fecha">Ordenar por fecha:</label>
+<select id="orden-fecha" class="filtro-select">
+    <option value="reciente">Más Reciente</option>
+    <option value="antiguo">Más Antiguo</option>
+</select>
+</div>
+</div> 
+<div id="pedidos-container">
+
+{% for d in dataPedidos2 %}
+<div class="pedido-item {% if d.codigo_estadoDeProceso == 1 %} por-atender 
+{% elif d.codigo_estadoDeProceso == 2 %} en-proceso 
+{% elif d.codigo_estadoDeProceso == 3 %} pendiente-pago 
+{% endif %}"data-fecha="{{ d.fecha_pedido }}"style="
+{% if d.codigo_estadoDeProceso == 2 %}
+  border-left: 5px solid #87CEEB;
+{% elif d.codigo_estadoDeProceso == 3 %}
+  border-left: 5px solid #ff7300;
+{% else %}
+  border-left: 5px solid #FFD700;
+{% endif %}
+">
+
+  <div class="pedido-info">
+    <div><strong>Cliente:</strong> {{ d.nombre_cliente }} {{ d.apellido_cliente }}  
+    <div class="text-muted" style="font-size: 12px;"><strong>Dirección:</strong> Calle {{ d.calle }}, Sector {{ d.sector }}, casa n° {{ d.numero_casa }}, {{ d.ciudad }}, {{ d.estado }}</div>
+    <div><strong>Estado de pedido:</strong> {{ d.estado_pedido }}</div>
+
+      <div class="extra-info">
+                    <strong>Teléfono del cliente:</strong> {{ d.prefijo_telefonico }}{{ d.numero }}</div>
+<div><strong>Técnicos asignados:</strong> {{ d.nombres_tecnicos }}
+          <strong>Fecha:</strong> {{ d.fecha_pedido }}</div>
+          
+      </di>
   </div>
 
 
+  <div class="botones">
+    
+    <button class="btn btn-sm"  id="btn-edit{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="{% if d.codigo_estadoDeProceso == 3 %}#modalPendiente{{d.codigo_pedido}}
+    {% elif d.codigo_estadoDeProceso == 2 %}#modalProceso{{d.codigo_pedido}}
+    {% else %}#modal{{d.codigo_pedido}}{% endif %}">Ver detalles</button>
+    <div class="boton-con-icono"><button class="boton toggle" data-bs-toggle="modal" 
+      data-bs-target="{% if d.codigo_estadoDeProceso == 3 %}#modalActualizarPendiente{{d.codigo_pedido}}
+      {% elif d.codigo_estadoDeProceso == 2 %}#modalActualizarEnProceso{{d.codigo_pedido}}
+      {% elif d.codigo_estadoDeProceso == 1 %}#modalDefault{{d.codigo_pedido}}{% endif %}"></button><i class='bx bx-right-arrow-alt'></i></div>
+  </div>
 
-<div id="pedidos-container">
-  {% for d in dataPedidos1 %}
-    <div class="pedido-item"style="
-    {% if d.codigo_estadoDeProceso == 2 %}
-      border-left: 5px solid #87CEEB;
-    {% elif d.codigo_estadoDeProceso == 3 %}
-      border-left: 5px solid #ff7300;
-    {% elif d.codigo_estadoDeProceso == 4 %}
-      border-left: 5px solid #75dd71;
-    {% else %}
-      border-left: 5px solid #FFD700;
-    {% endif %}
-  ">
+</div>
 
-      <div class="pedido-info">
-        <div><strong>Cliente:</strong> {{ d.nombre_cliente }} {{ d.apellido_cliente }}  <strong>Teléfono:</strong> {{ d.prefijo_telefonico }}{{ d.numero }}</div>
-        <div class="text-muted"><strong>Dirección:</strong> Calle {{ d.calle }}, Sector {{ d.sector }}, casa n° {{ d.numero_casa }}, {{ d.ciudad }}, {{ d.estado }}</div>
-        <div><strong>Técnico asignado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }} <strong>   Fecha:</strong> {{ d.fecha_pedido }}      </div>
-        <div><strong>Estado de pedido:</strong> {{ d.estado_pedido }}</div>
-        
-      </div>
-      <div class="botones">
-        
-        
-        <div class="boton-con-icono"><button class="boton toggle" data-bs-toggle="modal" 
-          data-bs-target="{% if d.codigo_estadoDeProceso == 3 %}#modalPendiente{{d.codigo_pedido}}
-          {% elif d.codigo_estadoDeProceso == 2 %}#modalProceso{{d.codigo_pedido}}
-          {% else %}#modalDefault{{d.codigo_pedido}}{% endif %}"></button><i class='bx bx-right-arrow-alt'></i></div>
-      </div>
-    </div>
-  {% endfor %}
+</div>
+{% endfor %}
 
-              {% for d in dataPedidos1%}
-        
 
-                <!-- Modal para actualizar estado de proceso-->
-                  <div class="modal fade" id="modalDefault{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="modalToggleLabel{{d.codigo_pedido}}" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="modalToggleLabel{{d.codigo_pedido}}">Actualizar estado del pedido</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                          <div class="text-muted">
-                            <div><strong>Cliente:</strong> {{d.cedula_cliente}} {{d.nombre_cliente}} {{d.nombre_apellido}}</div>
-                            <div><strong>Técnico asignado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }}</div>
-                            <div><strong>  Fecha del pedido:</strong>  {{ d.fecha_pedido }}     </div>
-                            <form action="/actualizarPedido/{{ d.codigo_pedido }}" method="post">
 
-                            <div>Codigo del pedido<INPUT name="codigo_pedido" id="codigo_pedido"  class="form-control" type="TEXT" value=" {{d.codigo_pedido}}" readonly></div>
-                          </div>
-                          
-                            <label for="servicio" class="form-label mt-1">Servicio</label>
-                            <select name="servicio" class="form-control" required>
-                              <option value="0" disabled selected="selected">--- Seleccione ---</option>
-                              {% for c in dataServicios %}
-                              <option value="{{ c.codigo_servicio}}">{{c.tipo}} - {{c.descripcion}}</option>
-                              {% endfor %}
-                            </select>
-                            <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
-                            <input class="form-control" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
-                            
-                            <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
-                            <input class="form-control required "type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
-                            
-                            <label for="total a pagar">Total a pagar</label>
-                            <input class="form-control" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" required>
-                            
-                            <!-- Checkbox para marcar cancelado -->
-                            <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
-                            <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
-                                  data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+          <!-- modal -->
 
-                            <!-- Campos adicionales ocultos -->
-                            <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
-                                <label>Fecha de pago</label>
-                                <input class="form-control"type="text" name="fecha_pago" class="fecha_pago" id="fecha_pago{{ d.codigo_pedido }}">
+          {% for d in dataPedidos2 %}
 
-                                <label>Tipo de moneda</label>
-                                <select class="form-control"id="tipo_moneda{{ d.codigo_pedido }}" class="tipo-moneda" name="tipo_moneda">
-                                    <option value="bolivares">Bolívares</option>
-                                    <option value="divisas">Divisas</option>
-                                </select>
+          <div class="modal fade" id="modal{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/editPedido/{{d.codigo_pedido}}" method="post">
 
-                                <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
-                                    <label>Método de pago</label>
-                                    <select  class="form-control" id="metodo_pago{{ d.codigo_pedido }}" class="metodo-pago" name="metodo_pago">
-                                        <!-- Opciones dinámicas en JS -->
-                                    </select>
-                                </div>
-
-                                <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
-                                    <label>Referencia</label>
-                                    <input type="number" id="referencia{{ d.codigo_pedido }}" name="referencia">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                            </div>
-                          
-                            <!-- Campos del formulario -->
-                          </form>
-                        </div>
-                      </div>
-                    </div>
+                       
+                      <label for="cliente" class="form-label mt-1">Cliente</label>
+                      <select readonly name="cliente" id="cliente" class="form-control" required>
+                          <option value="{{d.cedula_cliente}}" selected="selected">{{d.nombre_cliente}} {{d.apellido_cliente}}</option>
+                          {% for c in dataClientes %}
+                            <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option> 
+                            {% endfor %} 
+                      </select>                          
+                        <label>Código de pedido</label>
+                        <input readonly type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
+                        <label for="tecnico" class="form-label mt-1">Técnicos asigandos</label>
+                          <select name="tecnico" class="form-control" required>
+                            <option value="{{d.cedula_tecnico}}" selected="selected">{{d.nombres_tecnicos}}</option>
+                            {% for c in dataTecnicos %}
+                            <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
+                            {% endfor %}
+                          </select>
+                          <label>Fecha</label>
+                          <input readonly type="text" class="form-control mb-3 fecha_pedido" id="fecha_pedido"name="fecha_pedido" value="{{d.fecha_pedido}}">
+                        <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+                 
+                </div>
+                <div class="modal-footer">
+                </div>
+                    </form>
                   </div>
+                </div>
+              </div>
 
-                  <!-- Modal en proceso-->
-                  <div class="modal fade" id="modalProceso{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5">Actualizar Pedido - En Proceso</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                          <form action="/editarPedidoProceso/{{d.codigo_pedido}}" method="post">
-                            <div class="input-group">
-                              <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
-                              <input required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+            
+                  </div>
+                </div>
+              </div>
+
+                          <!-- modal editar y ver detalles pedidos en proceso-->
+
+          
+                      <div class="modal fade" id="modalProceso{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/editPedidoProceso/{{d.codigo_pedido}}" method="post">
+          
+                                  
+                                  <label for="cliente" class="form-label mt-1">Cliente: {{d.nombre_cliente}} {{d.apellido_cliente}}</label>
+                                                        
+                                   <div> <label>Código de pedido</label></div>
+                                    <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
+                                    <label for="tecnico" class="form-label mt-1">Técnicos asigandos</label>
+                                        <input readonly class="form-control" value="{{d.nombres_tecnicos}} " selected="selected">
+                                        
+                                      <label>Fecha del pedido</label>
+                                      <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
+
+                                    <label for="servicio" class="form-label mt-1">Servicios prestados</label>
+                                      <input class="form-control" readonly value="{{d.nombres_servicios_correctivos}}, {{d.nombres_servicios_preventivos}}" selected="selected">
+                                      
+                                    </select>
+                                    <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
+                                    <input readonly class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text"  name="fecha_inicio_trabajo"  required>
+                                                <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+
                               
                             </div>
-                                <!-- Checkbox para marcar cancelado -->
-                                <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
-                                <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
-                                      data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
-
-                                <!-- Campos adicionales ocultos -->
-                                <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
-                                    <label>Fecha de pago</label>
-                                    <input type="text" name="fecha_pago" class="fecha_pago" id="fecha_pago{{ d.codigo_pedido }}">
-
-                                    <label>Tipo de moneda</label>
-                                    <select id="tipo_moneda{{ d.codigo_pedido }}" class="tipo-moneda" name="tipo_moneda">
-                                        <option value="bolivares">Bolívares</option>
-                                        <option value="divisas">Divisas</option>
-                                    </select>
-
-                                    <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
-                                        <label>Método de pago</label>
-                                        <select id="metodo_pago{{ d.codigo_pedido }}" class="metodo-pago" name="metodo_pago">
-                                            <!-- Opciones dinámicas en JS -->
-                                        </select>
-                                    </div>
-
-                                    <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
-                                        <label>Referencia</label>
-                                        <input type="number" id="referencia{{ d.codigo_pedido }}" name="referencia">
-                                    </div>
-                                </div>
                             <div class="modal-footer">
-                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
                             </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+          
+                        
+                              </div>
+                            </div>
+                          </div>
 
-                  <!--Modal pendiente de pago-->
-                  <div class="modal fade" id="modalPendiente{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5">Actualizar Pedido - Pendiente de Pago</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                          <form action="/editarPedidoPendiente/{{d.codigo_pedido}}" method="post">
-                            <label>Total a pagar:</label>
-                            <input type="number" name="total_a_pagar" class="form-control" value="{{d.total_a_pagar}}" required>
-                  
-                            <label>Fecha de pago esperada:</label>
-                            <input type="date" name="fecha_pago_esperada" class="form-control" value="{{d.fecha_pago_esperada}}" required>
-                            
-                            <div class="modal-footer">
-                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                          <!-- modal editar y ver detalles pedidos pendientes de pago-->
+
+          
+                      <div class="modal fade" id="modalPendiente{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
+                            <div class="modal-body">
+                                <form action="/editPedidoPendiente/{{d.cedula}}" method="post">
+          
+                                  
+                                  <label for="cliente" class="form-label mt-1">Cliente: {{d.nombre_cliente}} {{d.apellido_cliente}}</label>
+                                                        
+                                   <div> <label>Código de pedido</label></div>
+                                    <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
+                                    <label for="tecnico" class="form-label mt-1">Técnicos asigandos</label>
+                                        <input readonly class="form-control" value="{{d.nombres_tecnicos}}" selected="selected">
+                                        
+                                      <label>Fecha del pedido</label>
+                                      <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
+
+                                    <label for="servicio" class="form-label mt-1">Servicio</label>
+                                      <input readonly class="form-control" value="{{d.nombres_servicios_correctivos}}, {{d.nombres_servicios_preventivos}}" selected="selected">
+                                      
+                                    <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
+                                    <input readonly class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
+                                    <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
+                                    <input readonly value="{{d.fecha_fin_trabajo}}" class="form-control  "required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+                                    
+                                    <label for="total a pagar">Total a pagar (USD)</label>
+                                        <input readonly value="{{d.total_a_pagar}}" class="form-control total_a_pagar" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" data-valor-inicial="{{d.total_a_pagar}}">
+                                        <div class="text-muted">Moneda nacional: <span class="monto_bs">0.00</span> Bs</div>
+                                        <div class="text-muted">Tasa del día: {{tasa_bcv}}</div>
+                                  <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+ 
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+          
+                        
+                              </div>
+                            </div>
+                          </div>
+
+              
+    
+
+            <!-- Modal para actualizar estado de proceso POr atender-->
+            <div class="modal fade" id="modalDefault{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="modalToggleLabel{{d.codigo_pedido}}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modalToggleLabel{{d.codigo_pedido}}">Actualizar estado del pedido</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
-                  
-                  
-              {% endfor %}
-  
-  
-  
-  
+                  <div class="modal-body">
+                    <div class="text-muted">
+                      <div><strong>Cliente:</strong> {{d.cedula_cliente}} {{d.nombre_cliente}} {{d.nombre_apellido}}</div>
+                      <div><strong>Técnico asignado:</strong> {{ d.nombres_tecnicos }}</div>
+                      <div><strong>  Fecha del pedido:</strong>  {{ d.fecha_pedido }}     </div>
+                      <form action="/actualizarPedido/{{ d.codigo_pedido }}" method="post">
+
+                      <div>Codigo del pedido<INPUT name="codigo_pedido" id="codigo_pedido"  class="form-control" type="TEXT" value=" {{d.codigo_pedido}}" readonly></div>
+                    </div>
+                    
+                      <label for="servicio" class="form-label mt-1">Servicios prestados:</label>
+                      <div>
+                        <div class="servicios-container">
+                          <label for="servicios_correctivo">Correctivos</label>
+                          <select class="servicios-select servicios-correctivo form-control" name="serviciosSeleccionados[]" multiple>
+                              {% for s in dataServiciosCorrectivos %}
+                                  <option value="{{ s.codigo_servicio }}"
+                                      {% if d.codigos_servicios and s.codigo_servicio|string in d.codigos_servicios.split(',') %} selected {% endif %}>
+                                      {{ s.descripcion }}
+                                  </option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      
+                      <div class="servicios-container">
+                          <label for="servicios_preventivo">Preventivos</label>
+                          <select class="servicios-select servicios-preventivo form-control" name="serviciosSeleccionados[]" multiple>
+                              {% for s in dataServiciosPreventivos %}
+                                  <option value="{{ s.codigo_servicio }}"
+                                      {% if d.codigos_servicios and s.codigo_servicio|string in d.codigos_servicios.split(',') %} selected {% endif %}>
+                                      {{ s.descripcion }}
+                                  </option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      
+
+                      <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
+                      <input class="form-control" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
+                      
+                      <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
+                      <input class="form-control required "type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
+                      
+                      <label for="total a pagar">Total a pagar (USD)</label>
+                      <input class="form-control total_a_pagar" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" >
+                      <div class="text">Moneda nacional: <span class="monto_bs">0.00</span> Bs</div>
+                                  <div class="text-muted">Tasa del día: {{tasa_bcv}}</div>
+                      <!-- Checkbox para marcar cancelado -->
+                      <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
+                      <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
+                            data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+
+                      <!-- Campos adicionales ocultos -->
+                      <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
+                          <label>Fecha de pago</label>
+                          <input class="form-control"type="text" name="fecha_pago" class="fecha_pago" id="fecha_pago">
+
+                          <label>Tipo de moneda</label>
+                          <select class="form-control"id="tipo_moneda{{ d.codigo_pedido }}" class="tipo-moneda" name="tipo_moneda">
+                              <option value="bolivares">Bolívares</option>
+                              <option value="divisas">Divisas</option>
+                          </select>
+
+                          <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
+                              <label>Método de pago</label>
+                              <select  class="form-control" id="metodo_pago{{ d.codigo_pedido }}" class="metodo-pago" name="metodo_pago">
+                                  <!-- Opciones dinámicas en JS -->
+                              </select>
+                          </div>
+
+                          <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
+                              <label>Referencia</label>
+                              <input type="number" class="form-control" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                          </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                      </div>
+                    
+                      <!-- Campos del formulario -->
+                    </form>
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal actualizar pedido estado en proceso-->
+          <div class="modal fade" id="modalActualizarEnProceso{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5">Actualizar Pedido - En Proceso</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form action="/actualizarPedidoProceso/{{d.codigo_pedido}}" method="post">
+                    <label>Codigo de pedido</label>
+                    <input readonly type="text" value="{{d.codigo_pedido}}" name="codigo_pedido" class="form-control">
+                      <label >Fecha de finalización del trabajo</label>
+                      <input required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="form-control fecha_fin_trabajo" >
+                      <label for="total a pagar">Total a pagar (USD)</label>
+                    <input class="form-control total_a_pagar" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" >
+                    <div class="text">Moneda nacional: <span class="monto_bs">0.00</span> Bs</div>
+                    <div class="text-muted">Tasa del día: {{tasa_bcv}}</div>
+                        <!-- Checkbox para marcar cancelado -->
+                        <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
+                        <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
+                              data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+
+                        <!-- Campos adicionales ocultos -->
+                        <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
+                            <label>Fecha de pago</label>
+                      <input type="text" name="fecha_pago" class="form-control fecha_pago" id="fecha_pago">
+
+                            <label>Tipo de moneda</label>
+                            <select id="tipo_moneda{{ d.codigo_pedido }}" class="form-control tipo-moneda" name="tipo_moneda">
+                                <option value="bolivares">Bolívares</option>
+                                <option value="divisas">Divisas</option>
+                            </select>
+
+                            <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
+                                <label>Método de pago</label>
+                                <select id="metodo_pago{{ d.codigo_pedido }}" class="form-control metodo-pago" name="metodo_pago">
+                                    <!-- Opciones dinámicas en JS -->
+                                </select>
+                            </div>
+
+                            <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
+                                <label>Referencia</label>
+                                <input type="number" class="form-control" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                            </div>
+                        </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+
+          <!--Modal actualizar pdido estado pendiente de pago-->
+          <div class="modal fade" id="modalActualizarPendiente{{d.codigo_pedido}}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5">Actualizar Pedido - Pendiente de Pago</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form action="/actualizarPedidoPendiente/{{d.codigo_pedido}}" method="post">
+                    <label>Codido de pedido</label>
+                    <input type="text" class="form-control" readonly value="{{d.codigo_pedido}}" name="codigo_pedido">
+                    
+                        <!-- Checkbox para marcar cancelado -->
+                        <label for="cancelado{{ d.codigo_pedido }}">Pago cancelado</label>
+                        <input type="checkbox" id="cancelado{{ d.codigo_pedido }}"  value="1" name="cancelado" class="cancelado-checkbox" 
+                              data-codigo_pedido="{{ d.codigo_pedido }}" {% if d.cancelado %} checked {% endif %}>
+
+                        <!-- Campos adicionales ocultos -->
+                        <div id="detallesPago{{ d.codigo_pedido }}" class="detalles-pago" style="display: none;">
+                            <label>Fecha de pago</label>
+                      <input type="text" name="fecha_pago" class="form-control fecha_pago" id="fecha_pago">
+
+                            <label>Tipo de moneda</label>
+                            <select id="tipo_moneda{{ d.codigo_pedido }}" class="form-control tipo-moneda" name="tipo_moneda">
+                                <option value="bolivares">Bolívares</option>
+                                <option value="divisas">Divisas</option>
+                            </select>
+
+                            <div id="metodoPagoContainer{{ d.codigo_pedido }}" style="display: none;">
+                                <label>Método de pago</label>
+                                <select id="metodo_pago{{ d.codigo_pedido }}" class="form-control metodo-pago" name="metodo_pago">
+                                    <!-- Opciones dinámicas en JS -->
+                                </select>
+                            </div>
+
+                            <div id="referenciaContainer{{ d.codigo_pedido }}" style="display: none;">
+                                <label>Referencia</label>
+                                <input type="number" class="form-control" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                            </div>
+                        </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+              
+
+              
+              
+          {% endfor %}
+
+
+
+
+            </div>
+            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"> </script>
 <!-- Flatpickr JS -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script>
   flatpickr("#fecha_pedido", {
       dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
       enableTime: false,     // Deshabilitar hora (solo fecha)
       locale: "es"           // Español
   });
-</script>
-<script>
   flatpickr("#fecha_inicio_trabajo", {
       dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
       enableTime: false,     // Deshabilitar hora (solo fecha)
       locale: "es"           // Español
   });
-</script>
-
-<script>
+  
   flatpickr("#fecha_fin_trabajo", {
       dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
       enableTime: false,     // Deshabilitar hora (solo fecha)
       locale: "es"           // Español
   });
-
+  flatpickr("#fecha_pago", {
+      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
+      enableTime: false,     // Deshabilitar hora (solo fecha)
+      locale: "es"           // Español
+  });
   document.addEventListener('DOMContentLoaded', () => {
-  const elementosFechaPago = document.querySelectorAll('.fecha_pago'); // Seleccionar por clase
-
+  const elementosFechaPago = document.querySelectorAll('.fecha_pago2'); // Seleccionar por clase
+  
   elementosFechaPago.forEach(elemento => {
     flatpickr(elemento, {
       dateFormat: "Y-m-d",
@@ -252,11 +485,11 @@
       locale: "es"
     });
   });
-});
-
-
-// Inicialización de checkboxes y campos dependientes
-document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* modal
+  });
+  
+  
+  // Inicialización de checkboxes y campos dependientes
+  document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* modal
             modal.addEventListener('shown.bs.modal', () => { // Escuchar el evento 'shown.bs.modal'
                 const codigo_pedido = modal.id.replace(/[^0-9]/g, ''); // Extraer el código del pedido del ID del modal
                 const checkbox = modal.querySelector(`#cancelado${codigo_pedido}`);
@@ -266,12 +499,12 @@ document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* m
                 const metodoPagoContainer = modal.querySelector(`#metodoPagoContainer${codigo_pedido}`);
                 const referenciaContainer = modal.querySelector(`#referenciaContainer${codigo_pedido}`);
                 
-
+  
                 if (!checkbox || !detallesPago || !tipoMoneda || !metodoPago || !metodoPagoContainer || !referenciaContainer) {
                     console.warn(`Algunos elementos del modal ${codigo_pedido} no se encontraron.`);
                     return;
                 }
-
+  
                 function actualizarCampos() {
                     detallesPago.style.display = checkbox.checked ? "block" : "none";
                     if (!checkbox.checked) {
@@ -279,7 +512,7 @@ document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* m
                         referenciaContainer.style.display = "none";
                     }
                 }
-
+  
                 function actualizarMetodosPago() {
                     metodoPago.innerHTML = "";
                     metodoPagoContainer.style.display = "block";
@@ -289,25 +522,240 @@ document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* m
                         metodoPago.innerHTML = `<option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option>`;
                     }
                 }
-
+  
                 function actualizarReferencia() {
                     referenciaContainer.style.display = (metodoPago.value === "pago_movil" || metodoPago.value === "transferencia") ? "block" : "none";
                 }
-
+  
                 checkbox.addEventListener("change", actualizarCampos);
                 tipoMoneda.addEventListener("change", actualizarMetodosPago);
                 metodoPago.addEventListener("change", actualizarReferencia);
-
+  
                 actualizarCampos();
                 actualizarMetodosPago();
                 actualizarReferencia();
-
+  
                 
             });
         });
-
-
-</script>
+  
+        function filtrarPedidos(filtro) {
+    let pedidos = document.querySelectorAll('.pedido-item');
+  
+    pedidos.forEach(pedido => {
+        if (filtro === 'todos') {
+            pedido.style.display = 'flex';
+        } else if (pedido.classList.contains(filtro)) {
+            pedido.style.display = 'flex';
+        } else {
+            pedido.style.display = 'none';
+        }
+    });
+        };
+  document.getElementById("orden-fecha").addEventListener("change", function() {
+    let orden = this.value;
+    let contenedor = document.getElementById("pedidos-container");
+    let pedidos = Array.from(contenedor.getElementsByClassName("pedido-item"));
+  
+    pedidos.sort((a, b) => {
+        let fechaA = new Date(a.getAttribute("data-fecha"));
+        let fechaB = new Date(b.getAttribute("data-fecha"));
+  
+        return orden === "reciente" ? fechaB - fechaA : fechaA - fechaB;
+    });
+  
+    pedidos.forEach(pedido => contenedor.appendChild(pedido));
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tu código aquí
+    const tasaBCV = parseFloat("{{ tasa_bcv }}");
+    console.log("Tasa BCV:", tasaBCV);
+  
+    document.querySelectorAll('.total_a_pagar').forEach(function(input) {
+        input.addEventListener('input', function() {
+            const valorFormateado = this.value;
+            const montoUSD = parseFloat(valorFormateado) || 0;
+            console.log("Monto USD:", montoUSD);
+  
+            const montoBsElement = this.closest('.modal').querySelector('.monto_bs');
+  
+            if (montoBsElement){
+                if (!isNaN(montoUSD)) {
+                    const montoBS = montoUSD * tasaBCV;
+                    montoBsElement.textContent = montoBS.toFixed(2);
+                } else {
+                    montoBsElement.textContent = "0.00";
+                }
+            } else {
+                console.log("No se encontro el elemento monto_bs")
+            }
+        });
+    });
+  });
+  $(document).ready(function() {
+    $('.tecnicos-select').each(function() {
+        let $select = $(this);
+        
+        // Inicializar Select2 en cada select
+        $select.select2({
+            placeholder: "--- Seleccione Técnicos ---",
+            allowClear: true
+        });
+  
+        function actualizarListaSeleccionados($select) {
+            let lista = $select.closest('div').siblings('.seleccionados').find('.listaSeleccionados');
+            lista.empty();
+  
+            // Obtener los técnicos seleccionados
+            let seleccionados = $select.val() || [];
+  
+            // Mostrar los técnicos seleccionados en la lista
+            $select.find('option:selected').each(function() {
+                let tecnico = $(this).text();
+                lista.append('<li>' + tecnico + '</li>');
+            });
+        }
+  
+        // Escuchar cambios en la selección y actualizar la lista
+        $select.on('change', function() {
+            actualizarListaSeleccionados($(this));
+        });
+  
+        // Cargar técnicos seleccionados al inicio
+        actualizarListaSeleccionados($select);
+    });
+  });
+  $(document).ready(function() {
+    // Inicializar Select2 en todos los selects con la clase "servicios-select"
+    $('.servicios-select').select2({
+        placeholder: "--- Seleccione Servicios ---",
+        allowClear: true,
+        tags: true
+    });
+  
+    // Función para actualizar la lista de servicios seleccionados
+    function actualizarListaServicios(container) {
+        let lista = container.find('.lista-seleccionados-servicios');
+        lista.empty();
+  
+        // Obtener los servicios seleccionados dentro de este contenedor específico
+        let seleccionados = container.find('.servicios-select').val() || [];
+  
+        // Mostrar los servicios seleccionados en la lista
+        container.find('.servicios-select option:selected').each(function() {
+            lista.append('<li>' + $(this).text() + '</li>');
+        });
+    }
+  
+    // Manejar cambios en los selects dentro de cada modal
+    $('.servicios-container').each(function() {
+        let container = $(this).closest('.modal'); // Detectar el modal específico
+        container.find('.servicios-select').on('change', function() {
+            actualizarListaServicios(container);
+        });
+  
+        // Cargar servicios seleccionados al inicio
+        actualizarListaServicios(container);
+    });
+  });
+  document.addEventListener("DOMContentLoaded", function() {
+    function actualizarListaSeleccionados(selectElement, listaId) {
+        let lista = document.getElementById(listaId);
+        lista.innerHTML = "";
+        
+        Array.from(selectElement.selectedOptions).forEach(option => {
+            let li = document.createElement("li");
+            li.textContent = option.text;
+            lista.appendChild(li);
+        });
+    }
+  
+    // Capturar los select de servicios correctivos y preventivos
+    let selectCorrectivo = document.querySelector(".servicios-correctivo");
+    let selectPreventivo = document.querySelector(".servicios-preventivo");
+  
+    // Actualizar la lista de servicios seleccionados al cargar
+    actualizarListaSeleccionados(selectCorrectivo, "listaSeleccionadosServicios");
+    actualizarListaSeleccionados(selectPreventivo, "listaSeleccionadosServicios");
+  
+    // Escuchar cambios en los selects
+    selectCorrectivo.addEventListener("change", function() {
+        actualizarListaSeleccionados(selectCorrectivo, "listaSeleccionadosServicios");
+    });
+  
+    selectPreventivo.addEventListener("change", function() {
+        actualizarListaSeleccionados(selectPreventivo, "listaSeleccionadosServicios");
+    });
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    const tasaBCV = parseFloat("{{ tasa_bcv }}");
+    console.log("Tasa BCV:", tasaBCV);
+  
+    function actualizarMontoBs(input) {
+        const montoUSD = parseFloat(input.value) || 0;
+        const montoBS = montoUSD * tasaBCV;
+        const montoBsElement = input.closest('.modal').querySelector('.monto_bs');
+  
+        if (montoBsElement) {
+            montoBsElement.textContent = montoBS.toFixed(2);
+        }
+    }
+  
+    const inputs = document.querySelectorAll('.total_a_pagar');
+  
+    inputs.forEach(input => {
+        const valorInicial = input.dataset.valorInicial;
+  
+        if (valorInicial) {
+            input.value = parseFloat(valorInicial).toFixed(2);
+            actualizarMontoBs(input); // Actualizar monto Bs al cargar el modal
+        } else {
+            input.value = '0.00';
+        }
+  
+        input.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+  
+            if (!value) {
+                e.target.value = '0.00';
+                return;
+            }
+  
+            while (value.length < 3) {
+                value = '0' + value;
+            }
+  
+            const integerPart = value.slice(0, -2);
+            const decimalPart = value.slice(-2);
+  
+            const trimmedIntegerPart = integerPart.replace(/^0+/, '');
+            const finalIntegerPart = trimmedIntegerPart || '0';
+  
+            const formattedValue = `${finalIntegerPart}.${decimalPart}`;
+  
+            e.target.value = formattedValue;
+            actualizarMontoBs(input); // Actualizar monto Bs al cambiar el valor
+        });
+  
+        input.addEventListener('focus', function (e) {
+            e.target.select();
+        });
+    });
+  });
+  $(document).ready(function() {
+  $('.tecnicos-select').select2({
+      width: '100%', // 🔥 Esto hace que el select ocupe todo el ancho disponible
+      allowClear: true , // 🔥 Habilita la X para limpiar
+      placeholder: "---Seleccione---"
+  });
+  $('.servicios-select').select2({
+      width: '100%', // 🔥 Esto hace que el select ocupe todo el ancho disponible
+      allowClear: true,
+      placeholder: "---Seleccione---"
+  
+  });
+  }); 
+  </script>
 
 
 {% endblock %}
