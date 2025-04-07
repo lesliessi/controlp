@@ -308,12 +308,10 @@ def hash_para_comparar(contraseña):
 
 @app.route('/registro-usuario-3', methods=['GET', 'POST'])
 def registerUser3():
-     #verificar_inactividad()
     msg = ''
     conexion_MySQLdb = connectionBD()
 
     if request.method == 'POST':
-<<<<<<< HEAD
         pregunta_seguridad = request.form['pregunta_seguridad']
         contraseña = request.form['contraseña']
         repetir_contraseña = request.form['repetir_contraseña']
@@ -328,7 +326,6 @@ def registerUser3():
         prefijo_telefonico = session.get('prefijo_telefonico')
         numero = session.get('numero')
         tipo = session.get('tipo')
-        cargo = session.get('cargo')
         usuario = session.get('usuario')
 
         if contraseña != repetir_contraseña:
@@ -337,69 +334,6 @@ def registerUser3():
                                    pregunta_seguridad=pregunta_seguridad,
                                    contraseña=contraseña,
                                    repetir_contraseña=repetir_contraseña)
-=======
-        pregunta_seguridad                       = request.form['pregunta_seguridad']
-        respuesta_seguridad                       = request.form['respuesta_seguridad']
-        contraseña                       = request.form['contraseña']
-        repetir_contraseña                       = request.form['repetir_contraseña']
-
-
-        session ['pregunta_seguridad'] = pregunta_seguridad
-        session ['respuesta_seguridad']=respuesta_seguridad
-        session ['contraseña']=contraseña
-        session ['repetir_contraseña']=repetir_contraseña
-
-        cedula = session.get ('cedula')
-        nombre = session.get ('nombre')
-        apellido = session.get ('apellido')
-        prefijo_telefonico = session.get ('prefijo_telefonico')
-        numero= session.get ('numero')
-        tipo = session.get ('tipo')
-        usuario = session.get ('usuario')       
-            
-        if contraseña != repetir_contraseña:
-                flash ('Las contraseñas no coinciden.')
-                return render_template(
-                'login/registerUser3.html',
-                msjAlert=msg,
-                typeAlert=1,
-                respuesta_seguridad=respuesta_seguridad,
-                contraseña=contraseña,
-                repetir_contraseña=repetir_contraseña
-            )
-            
-        elif not contraseña or not contraseña or not repetir_contraseña:
-                flash ('El formulario no debe estar vacio.')
-        else:
-            hashed = hash_contraseña(contraseña)
-            print(hashed)
-            try:
-                conexion_MySQLdb = connectionBD()
-                SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
-                val= (cedula, nombre, apellido)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL, val)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL1= "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
-                val1= (cedula, tipo)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL1, val1)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, respuesta_seguridad, pregunta_seguridad, codigo_rol) VALUES (%s, %s, %s, %s, %s, %s)"
-                val2= (cedula, usuario, hashed, respuesta_seguridad, pregunta_seguridad,'2')
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL2, val2)
-                conexion_MySQLdb.commit()
-                cursor.close()
-                SQL3="INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
-                val3= (prefijo_telefonico, numero, cedula)
-                cursor = conexion_MySQLdb.cursor(dictionary=True)
-                cursor.execute (SQL3, val3)
-                conexion_MySQLdb.commit()
-                cursor.close()
->>>>>>> main
 
         elif not contraseña or not repetir_contraseña:
             flash('El formulario no debe estar vacío.')
@@ -413,7 +347,6 @@ def registerUser3():
 
         nivel = nivel_seguridad(contraseña, hashes_existentes)
 
-<<<<<<< HEAD
         if nivel != "muy alto":
             flash(f'La contraseña tiene un nivel de seguridad: "{nivel.upper()}". Mejora la contraseña para continuar.')
             return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1,
@@ -434,8 +367,8 @@ def registerUser3():
             cursor.close()
 
             # Insert empleado
-            SQL1 = "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
-            val1 = (cedula, cargo, tipo)
+            SQL1 = "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
+            val1 = (cedula, tipo)
             cursor = conexion_MySQLdb.cursor(dictionary=True)
             cursor.execute(SQL1, val1)
             conexion_MySQLdb.commit()
@@ -474,24 +407,24 @@ def registerUser3():
                                    repetir_contraseña=repetir_contraseña)
 
     return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=0)
-=======
-                return render_template('login/login.html', msjAlert = msg, typeAlert=1)
-            
-            except Exception as e:
-                conexion_MySQLdb.rollback()
-                flash(f'Error al crear la cuenta: {str(e)}')
-                return render_template(
-                    'login/registerUser3.html',
-                    msjAlert=msg,
-                    typeAlert=1,
-                    respuesta_seguridad=respuesta_seguridad,
-                    contraseña=contraseña,
-                    repetir_contraseña=repetir_contraseña
-                )
-             
-        return render_template('login/registerUser3.html', msjAlert = msg, typeAlert=1)  
->>>>>>> main
 
+@app.route('/verificar-contraseña-repetida', methods=['POST'])
+def verificar_contraseña_repetida():
+    from flask import request, jsonify
+    contraseña_ingresada = request.json.get('contraseña')
+    hash_ingresado = hash_para_comparar(contraseña_ingresada)
+
+    conexion_MySQLdb = connectionBD()
+    cursor = conexion_MySQLdb.cursor(dictionary=True)
+    cursor.execute('SELECT contraseña_sha256 FROM usuario')
+    contraseñas_db = cursor.fetchall()
+    cursor.close()
+
+    for row in contraseñas_db:
+        if row['contraseña_sha256'] == hash_ingresado:
+            return jsonify({'repetida': True})
+
+    return jsonify({'repetida': False})
 
 
 @app.route('/registrar-empleado', methods=['GET', 'POST'])

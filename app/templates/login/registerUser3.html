@@ -74,7 +74,7 @@
                                 <div data-mdb-input-init class="form-outline">
                                   <label for="respuesta_seguridad" class="form-label mt-1"></label>
                                   <input id="respuesta_seguridad" type="text" name="respuesta_seguridad" class="form-control"placeholder="Ingrese su respuesta" 
-                                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+" minlength="5"  
+                                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ ]+" minlength="5"  
                                   title="La respuesta debe tener al menos 5 letras" oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" required>
                                     <div class="invalid-feedback">
                                       Complete el campo
@@ -90,6 +90,8 @@
                                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
                                   title="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&)." required/>
                                   <i class='bx bx-show-alt' style="color: #fff;"></i>
+                                  
+                                  
                                 </div>
                                   <small id="passwordHelp" class="text-muted"></small>
                                   <small id="passwordError" style="color: red; display: none;">La contraseña no cumple con los requisitos.</small>
@@ -107,6 +109,11 @@
                                     Complete el campo
                                   </div>
                               </div>
+                            </div>
+                            <div id="password-strength-bar" class="progress" style="height: 5px; background-color: #e0e0e0; border-radius: 5px; margin-top: 10px; margin-bottom: 10PX;">
+                              <div id="strength-fill" style="height: 100%; width: 0%; border-radius: 5px;"></div>
+                            </div>
+                            <div><small id="strength-text" class="text-muted" style="font-weight: bold;"></small>
                             </div>
                           <small for="placeholder" style="font-style:italic; font: size 7px; color: gray"  >La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&).</small>
 
@@ -211,6 +218,8 @@ document.getElementById("registerUser3").addEventListener("submit", function(eve
     localStorage.setItem("respuesta_seguridad", document.getElementById("respuesta_seguridad").value);
     localStorage.setItem("contraseña", document.getElementById("contraseña").value);
     localStorage.setItem("repetir_contraseña", document.getElementById("repetir_contraseña").value);
+    localStorage.setItem("pregunta_seguridad", document.getElementById("pregunta_seguridad").value);
+
 
     // Validar el formulario
     if (document.getElementById("registerUser3").checkValidity()) {
@@ -231,6 +240,10 @@ window.onload = function() {
       if (localStorage.getItem("repetir_contraseña")) {
           document.getElementById("repetir_contraseña").value = localStorage.getItem("repetir_contraseña");
       }
+      if (localStorage.getItem("pregunta_seguridad")) {
+    document.getElementById("pregunta_seguridad").value = localStorage.getItem("pregunta_seguridad");
+}
+
 
   };
 // Limpiar localStorage al abandonar el registro o completar el proceso
@@ -238,8 +251,83 @@ function limpiarLocalStorage() {
     localStorage.removeItem("respuesta_seguridad");
     localStorage.removeItem("contraseña");
     localStorage.removeItem("repetir_contraseña");
+    localStorage.removeItem("pregunta_seguridad");
+
 };
 </script>
+<script>
+
+const inputContraseña = document.getElementById("contraseña");
+const strengthFill = document.getElementById("strength-fill");
+const strengthText = document.getElementById("strength-text");
+
+let contraseñaEsRepetida = false;
+
+// Función para verificar si la contraseña es repetida
+async function verificarRepetida(password) {
+    if (password.length < 8) return false;
+
+    try {
+        const response = await fetch('/verificar-contraseña-repetida', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ contraseña: password })
+        });
+        const data = await response.json();
+        return data.repetida;
+    } catch (error) {
+        console.error("Error al verificar la contraseña:", error);
+        return false;
+    }
+}
+
+// Función para evaluar la seguridad de la contraseña
+function evaluarNivelContraseña(password, esRepetida) {
+    let nivel = 0;
+
+    const longitudOk = password.length >= 8;
+    const mayusculaOk = /[A-Z]/.test(password);
+    const numeroOk = /\d/.test(password);
+    const especialOk = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (longitudOk) nivel++;
+    if (mayusculaOk) nivel++;
+    if (numeroOk) nivel++;
+    if (especialOk) nivel++;
+
+    if (nivel === 4 && !esRepetida) {
+        return 4; // Muy alto
+    } else if (nivel === 4 && esRepetida) {
+        return 3; // Alto
+    } else if (nivel >= 2) {
+        return 2; // Medio
+    } else {
+        return 1; // Bajo
+    }
+}
+
+// Función para actualizar la barra de seguridad
+function actualizarBarra(nivel) {
+    const colores = ["#ff4d4d", "#ff9933", "#ffff66", "#66cc66"];
+    const textos = ["Bajo", "Medio", "Alto", "Muy alto"];
+    const porcentajes = ["25%", "50%", "75%", "100%"];
+
+    strengthFill.style.width = porcentajes[nivel - 1] || "0%";
+    strengthFill.style.backgroundColor = colores[nivel - 1] || "#e0e0e0";
+    strengthText.innerText = `Nivel de seguridad: ${textos[nivel - 1] || ""}`;
+}
+
+// Evento que se dispara al ingresar texto en el campo de contraseña
+inputContraseña.addEventListener("input", async function () {
+    const valor = inputContraseña.value;
+    const esRepetida = await verificarRepetida(valor);
+    const nivel = evaluarNivelContraseña(valor, esRepetida);
+    actualizarBarra(nivel);
+});
+</script>
+
 </body>
 
 {%endblock %}
