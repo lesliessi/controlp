@@ -14,7 +14,6 @@
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Empleados registrados</h1>
-        <button type="button" href="{{url_for('reportePDF')}}" class="btn btn-light">Exportar PDF</button>
       
   </div>
 
@@ -31,7 +30,6 @@
                 <th scope="col">Apellido</th>
                 <th scope="col">Teléfono</th>
                 <th scope="col">Tipo</th>
-                <th scope="col">Cargo</th>
 
               </thead>
         
@@ -43,7 +41,6 @@
                 <td>{{d.apellido}}</td>
                 <td>{{d.prefijo_telefonico}}{{d.numero}}</td>
                 <td>{{d.tipo}}</td>
-                <td>{{d.cargo}}</td>
                 
             </tr>
 

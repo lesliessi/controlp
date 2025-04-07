@@ -1,7 +1,9 @@
 #Importando  flask y algunos paquetes
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint, get_flashed_messages
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
+import http.client
+import json
 
 from conexionBD import *  #Importando conexion BD
 from funciones import *
@@ -10,17 +12,22 @@ from reportes import *
 from routes import * #Vistas
 
 import bcrypt 
+import hashlib
 
 import tkinter
 
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
+import http.client
+
 
 auth = Blueprint('auth', __name__)
 
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def loginUser():
+    #verificar_inactividad()
     session.clear()  # Limpia los datos de la sesión
 
     conexion_MySQLdb = connectionBD()
@@ -84,12 +91,27 @@ def loginUser():
 
 
                     flash ('Ha iniciado sesión correctamente.')
+                    pedidos= pedidos_por_atender()
+                    print(pedidos)
                     
+                    cantidad_pedidos = 0  # Asigna un valor predeterminado
+                    if pedidos:
+                            cantidad_pedidos = pedidos[0]['pedidos_por_atender'] if pedidos else 0
+                            print(cantidad_pedidos)
+                    pedidos2= pedidos_en_proceso()
+                    
+                    cantidad_pedidos2 = 0  # Asigna un valor predeterminado
+                    if pedidos2:
+                            cantidad_pedidos2 = pedidos2[0]['pedidos_en_proceso'] if pedidos2 else 0
 
-                    if session['rol']==1:
-                        return redirect(url_for('dashboard'))
-                    else:
-                        return render_template('dashboard2/dashboard2.html', msjAlert = msg, typeAlert=1, dataLogin = dataLoginSesion())
+                    pedidos3= pedidos_pendientes()
+                    
+                    cantidad_pedidos3 = 0  # Asigna un valor predeterminado
+                    if pedidos3:
+                            cantidad_pedidos3 = pedidos3[0]['pedidos_pendientes'] if pedidos3 else 0
+
+                    
+                    return redirect(url_for('dashboard'))
 
                 else:
                     flash ('Datos incorrectos, por favor verifique.')
@@ -109,12 +131,16 @@ def hash_contraseña(contraseña):
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
+     #verificar_inactividad()
     # Verificar si el usuario está conectado
     if 'conectado' not in session:
         return redirect(url_for('loginUser'))  # Redirigir al login si no está conectado
+    codigo_usuario = session['codigo_usuario'] 
 
     # Asegurarse de que la última sesión se obtiene correctamente
     ultima_sesion = obtener_ultima_sesion_anterior(session['codigo_usuario'])
+    print(codigo_usuario)
+    
 
 
     # Obtener los datos del usuario desde la base de datos
@@ -132,18 +158,36 @@ def dashboard():
     else:
         session['nombre'] = "Desconocido"
         session['apellido'] = "Desconocido"
+    
+    pedidos= pedidos_por_atender()
+    print(pedidos)
+      
+    cantidad_pedidos = 0  # Asigna un valor predeterminado
+    if pedidos:
+            cantidad_pedidos = pedidos[0]['pedidos_por_atender'] if pedidos else 0
+            print(cantidad_pedidos)
+    pedidos2= pedidos_en_proceso()
+      
+    cantidad_pedidos2 = 0  # Asigna un valor predeterminado
+    if pedidos2:
+            cantidad_pedidos2 = pedidos2[0]['pedidos_en_proceso'] if pedidos2 else 0
 
+    pedidos3= pedidos_pendientes()
+      
+    cantidad_pedidos3 = 0  # Asigna un valor predeterminado
+    if pedidos3:
+            cantidad_pedidos3 = pedidos3[0]['pedidos_pendientes'] if pedidos3 else 0
     if session['rol']==1:
     # Mostrar la página de bienvenida con los datos de la última sesión y del usuario
         return render_template('dashboard/dashboard.html', 
                            ultima_sesion=ultima_sesion, 
                            nombre=session['nombre'], 
-                           apellido=session['apellido'])
+                           apellido=session['apellido'], pedidos_por_atender=cantidad_pedidos, pedidos_en_proceso=cantidad_pedidos2, pedidos_pendientes_pago = cantidad_pedidos3)
     else:
         return render_template ('dashboard2/dashboard2.html', 
                            ultima_sesion=ultima_sesion, 
                            nombre=session['nombre'], 
-                           apellido=session['apellido'])
+                           apellido=session['apellido'], pedidos_por_atender=cantidad_pedidos, pedidos_en_proceso=cantidad_pedidos2, pedidos_pendientes_pago = cantidad_pedidos3)
 
 def validar_contraseña(contraseña):
     patron = re.compile(r'^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$')
@@ -174,6 +218,7 @@ def historialDeSesion(codigo_usuario):
 #Registrando una cuenta de Usuario
 @app.route('/registro-usuario', methods=['GET', 'POST'])
 def registerUser():
+     #verificar_inactividad()
     msg = ''
     conexion_MySQLdb = connectionBD()  
     
@@ -184,7 +229,6 @@ def registerUser():
         prefijo_telefonico          = request.form.get('prefijo_telefonico')
         numero                    = request.form['numero']
         tipo                        = request.form['tipo']
-        cargo                       =request.form['cargo']
 
         print(prefijo_telefonico)
 
@@ -193,7 +237,6 @@ def registerUser():
         session ['apellido']=apellido
         session ['prefijo_telefonico']=prefijo_telefonico
         session ['numero']=numero
-        session ['cargo']=cargo
         session ['tipo']=tipo
         
           
@@ -217,6 +260,7 @@ def registerUser():
 
 @app.route('/registro-usuario-2', methods=['GET', 'POST'])
 def registerUser2():
+     #verificar_inactividad()
     msg = ''
     conexion_MySQLdb = connectionBD()  
     
@@ -238,20 +282,25 @@ def registerUser2():
 
     return render_template('login/registerUser2.html', msjAlert = msg, typeAlert=0)
 
-
+def hash_para_comparar(contraseña):
+    return hashlib.sha256(contraseña.encode('utf-8')).hexdigest()
 
 @app.route('/registro-usuario-3', methods=['GET', 'POST'])
 def registerUser3():
+     #verificar_inactividad()
     msg = ''
     conexion_MySQLdb = connectionBD()  
     
 
     if request.method == 'POST':
         pregunta_seguridad                       = request.form['pregunta_seguridad']
+        respuesta_seguridad                       = request.form['respuesta_seguridad']
         contraseña                       = request.form['contraseña']
         repetir_contraseña                       = request.form['repetir_contraseña']
 
-        session ['pregunta_seguridad']=pregunta_seguridad
+
+        session ['pregunta_seguridad'] = pregunta_seguridad
+        session ['respuesta_seguridad']=respuesta_seguridad
         session ['contraseña']=contraseña
         session ['repetir_contraseña']=repetir_contraseña
 
@@ -261,7 +310,6 @@ def registerUser3():
         prefijo_telefonico = session.get ('prefijo_telefonico')
         numero= session.get ('numero')
         tipo = session.get ('tipo')
-        cargo = session.get ('cargo')
         usuario = session.get ('usuario')       
             
         if contraseña != repetir_contraseña:
@@ -270,7 +318,7 @@ def registerUser3():
                 'login/registerUser3.html',
                 msjAlert=msg,
                 typeAlert=1,
-                pregunta_seguridad=pregunta_seguridad,
+                respuesta_seguridad=respuesta_seguridad,
                 contraseña=contraseña,
                 repetir_contraseña=repetir_contraseña
             )
@@ -288,14 +336,14 @@ def registerUser3():
                 cursor.execute (SQL, val)
                 conexion_MySQLdb.commit()
                 cursor.close()
-                SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
-                val1= (cedula, cargo, tipo)
+                SQL1= "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
+                val1= (cedula, tipo)
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
                 cursor.execute (SQL1, val1)
                 conexion_MySQLdb.commit()
                 cursor.close()
-                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol) VALUES (%s, %s, %s, %s, %s)"
-                val2= (cedula, usuario, hashed, pregunta_seguridad, '2')
+                SQL2= "INSERT INTO usuario (cedula, usuario, contraseña, respuesta_seguridad, pregunta_seguridad, codigo_rol) VALUES (%s, %s, %s, %s, %s, %s)"
+                val2= (cedula, usuario, hashed, respuesta_seguridad, pregunta_seguridad,'2')
                 cursor = conexion_MySQLdb.cursor(dictionary=True)
                 cursor.execute (SQL2, val2)
                 conexion_MySQLdb.commit()
@@ -324,7 +372,7 @@ def registerUser3():
                     'login/registerUser3.html',
                     msjAlert=msg,
                     typeAlert=1,
-                    pregunta_seguridad=pregunta_seguridad,
+                    respuesta_seguridad=respuesta_seguridad,
                     contraseña=contraseña,
                     repetir_contraseña=repetir_contraseña
                 )
@@ -336,6 +384,7 @@ def registerUser3():
 
 @app.route('/registrar-empleado', methods=['GET', 'POST'])
 def registrarEmpleado():
+         #verificar_inactividad()
         msg = ''
         conexion_MySQLdb = connectionBD() 
 
@@ -347,7 +396,6 @@ def registrarEmpleado():
                     prefijo_telefonico                    = request.form['prefijo_telefonico']
                     numero                        = request.form['numero']
                     tipo                        = request.form['tipo']
-                    cargo                       =request.form['cargo']
                     #current_time = datetime.datetime.now()
 
                     conexion_MySQLdb = connectionBD()
@@ -363,8 +411,8 @@ def registrarEmpleado():
                     cursor.execute (SQL2, val2)
                     conexion_MySQLdb.commit()
                     cursor.close()
-                    SQL1= "INSERT INTO empleado (cedula, cargo, tipo) VALUES (%s, %s, %s)"
-                    val1= (cedula, cargo, tipo)
+                    SQL1= "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
+                    val1= (cedula, tipo)
                     cursor = conexion_MySQLdb.cursor(dictionary=True)
                     cursor.execute (SQL1, val1)
                     conexion_MySQLdb.commit()
@@ -379,6 +427,7 @@ def registrarEmpleado():
 
 @app.route('/registrar-cliente', methods=['GET', 'POST'])
 def registrarCliente():
+         #verificar_inactividad()
         msg = ''
         conexion_MySQLdb = connectionBD() 
 
@@ -434,6 +483,7 @@ def registrarCliente():
 
 @app.route('/get_ciudades', methods=['GET'])
 def get_ciudades():
+     #verificar_inactividad()
     conexion_MySQLdb = connectionBD()
     estado_id = request.args.get('estado_id')
 
@@ -461,6 +511,7 @@ def get_ciudades():
 
 @app.route('/get_direccion', methods=['GET'])
 def get_direccion():
+     #verificar_inactividad()
     conexion_MySQLdb = connectionBD()
     cliente_id = request.args.get('cliente_id')
 
@@ -492,43 +543,64 @@ WHERE d.cedula = %s"""
     
 @app.route('/nuevo-pedido', methods=['GET', 'POST'])
 def nuevoPedido():
-        msg = ''
-        conexion_MySQLdb = connectionBD()
+     #verificar_inactividad()
+    if 'conectado' in session:
+        if request.method == 'POST':
+            try:
+                #  Conexión a la base de datos
+                conexion_MySQLdb = connectionBD()
 
-        if 'conectado' in session:
-            if request.method == 'POST':
-                    cliente                       = request.form['cliente']
-                    tecnico                       = request.form['tecnico']
-                    fecha_pedido                         =request.form['fecha_pedido']
+                #  Obtener datos del formulario
+                cliente = request.form['cliente']
+                tecnicos = request.form.getlist('tecnicoSeleccionado[]')  # Lista de técnicos
+                fecha_pedido = request.form['fecha_pedido']
+                cedula_empleado_registra = session.get('cedula')
 
-                    session['cliente']= cliente
+                #  Insertar el pedido solo una vez
+                SQL = """
+                INSERT INTO pedido (cedula_cliente, fecha_pedido, cedula_empleado_registra, cancelado) 
+                VALUES (%s, %s, %s, '0')
+                """
+                val = (cliente, fecha_pedido, cedula_empleado_registra)
 
-                    cedula_empleado_registra= session.get('cedula')
+                cursor = conexion_MySQLdb.cursor(dictionary=True)
+                cursor.execute(SQL, val)
+                conexion_MySQLdb.commit()
 
+                #  Obtener el código del pedido recién insertado
+                codigo_pedido = cursor.lastrowid  
+                print(f"Pedido insertado con código: {codigo_pedido}")  # Depuración
 
-                    conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO pedido (cedula_cliente,fecha_pedido, cedula_empleado_registra,  cancelado) VALUES (%s, %s, %s, '0')" 
-                    val= (cliente,fecha_pedido, cedula_empleado_registra)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL, val)
+                #  Asociar técnicos si se seleccionaron
+                if tecnicos:
+                    SQL1 = """
+                    INSERT INTO tecnico_atiende_pedido (codigo_pedido, cedula_tecnico)
+                    VALUES (%s, %s)
+                    """
+                    for tecnico in tecnicos:
+                        cursor.execute(SQL1, (codigo_pedido, tecnico.strip()))  # Strip para evitar espacios
+
                     conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL1= "INSERT INTO tecnico_atiende_pedido (codigo_pedido, cedula_tecnico) VALUES ((SELECT MAX(codigo_pedido) FROM pedido), %s)"
-                    val1= (tecnico,)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL1, val1)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                            
-                            
-                    flash ('Pedido por atender registrado correctamente.')
-                    return redirect(url_for('verRegistrosPedidos'))
 
-        return render_template('dashboard/pedidos/nuevoPedido.html', dataClientes=listaClientes(), dataTecnicos=listaTecnicos(), dataServicios=listaServicios())
+                #  Cerrar el cursor y redirigir
+                cursor.close()
+                flash('Pedido registrado correctamente con técnicos asignados.')
+                return redirect(url_for('verRegistrosPedidos'))
+
+            except Exception as e:
+                print(f"Error: {e}")  #  Mostrar error en consola
+                flash('Ocurrió un error al registrar el pedido.')
+                return redirect(url_for('verRegistrosPedidos'))
+
+    #  Cargar datos en caso de GET
+    return render_template('dashboard/pedidos/nuevoPedido.html', 
+                           dataClientes=listaClientes(), 
+                           dataTecnicos=listaTecnicos(), 
+                           dataServicios=listaServicios())
 
 @app.route('/registrar-servicio', methods=['GET', 'POST'])
 def registrarServicio():
+         #verificar_inactividad()
         msg = ''
         conexion_MySQLdb = connectionBD()
 
@@ -571,7 +643,6 @@ def edit(cedula):
     prefijo_telefonico = request.form['prefijo_telefonico']
     numero= request.form['numero']
     tipo     = request.form['tipo']
-    cargo    = request.form['cargo']
 
     if request.method== 'POST':
         conexion_MySQLdb = connectionBD()
@@ -580,8 +651,8 @@ def edit(cedula):
         data = (nombre, apellido, cedula)
         cursor.execute(sql, data)
         conexion_MySQLdb.commit()
-        sql1= "UPDATE empleado SET tipo= %s, cargo = %s WHERE cedula = %s"
-        data1= (tipo, cargo, cedula)
+        sql1= "UPDATE empleado SET tipo= %s WHERE cedula = %s"
+        data1= (tipo, cedula)
         cursor.execute(sql1, data1)
         conexion_MySQLdb.commit()
         cursor.close()
@@ -682,39 +753,50 @@ def deletePedido(codigo_pedido):
     conexion_MySQLdb.commit()
     return redirect(url_for('verRegistrosPedidos'))
 
-@app.route('/editPedido/<string:cedula>', methods=['POST'])
-def editPedido(cedula):
+@app.route('/editPedido/<string:codigo_pedido>', methods=['POST'])
+def editPedido(codigo_pedido):
     
-    
-    cliente              = request.form['cliente']
-    tecnico            = request.form['tecnico']
-    fecha_pedido        = request.form['fecha_pedido']
-    codigo_pedido       = request.form['codigo_pedido']
-    
+    cliente = request.form['cliente']
+    tecnicos = request.form.getlist('tecnicoSeleccionado[]')  # Obtener múltiples técnicos como lista
+    fecha_pedido = request.form['fecha_pedido']
+    codigo_pedido = request.form['codigo_pedido']
 
-    if request.method== 'POST':
+    if request.method == 'POST':
         conexion_MySQLdb = connectionBD()
         cursor = conexion_MySQLdb.cursor()
-        sql1= "UPDATE pedido SET  cedula_cliente = %s, fecha_pedido = %s WHERE codigo_pedido = %s"
-        data1= (cliente,fecha_pedido, codigo_pedido,)
+
+        # 🔹 Actualizar datos del pedido
+        sql1 = "UPDATE pedido SET cedula_cliente = %s, fecha_pedido = %s WHERE codigo_pedido = %s"
+        data1 = (cliente, fecha_pedido, codigo_pedido)
         cursor.execute(sql1, data1)
         conexion_MySQLdb.commit()
-        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
-        data2= (tecnico, codigo_pedido,)
-        cursor.execute(sql2, data2)
-        flash ('Datos actualizados correctamente.')
-        conexion_MySQLdb.commit()
-        cursor.close()
-    return redirect(url_for('verRegistrosPedidos')) 
 
-@app.route('/editPedidoProceso/<string:cedula>', methods=['POST'])
-def editPedidoProceso(cedula):
+        # 🔹 Eliminar los técnicos previamente asociados a este pedido
+        sql_delete_tecnicos = "DELETE FROM tecnico_atiende_pedido WHERE codigo_pedido = %s"
+        cursor.execute(sql_delete_tecnicos, (codigo_pedido,))
+        conexion_MySQLdb.commit()
+
+        # 🔹 Insertar los técnicos seleccionados nuevamente
+        if tecnicos:
+            sql2 = "INSERT INTO tecnico_atiende_pedido (codigo_pedido, cedula_tecnico) VALUES (%s, %s)"
+            for tecnico in tecnicos:
+                cursor.execute(sql2, (codigo_pedido, tecnico))
+            conexion_MySQLdb.commit()
+
+        cursor.close()
+        flash('Pedido actualizado correctamente.')
+    
+    return redirect(url_for('verRegistrosPedidos'))
+
+@app.route('/editPedidoProceso/<string:codigo_pedido>', methods=['POST'])
+def editPedidoProceso(codigo_pedido):
     
     
-    tecnico            = request.form['tecnico']
+    tecnicos = request.form.getlist('tecnicoSeleccionado[]')  # Obtener múltiples técnicos como lista
     codigo_pedido       = request.form['codigo_pedido']
     fecha_inicio_trabajo = request.form['fecha_inicio_trabajo']
-    servicio            = request.form['servicio']
+    servicios = request.form.getlist('serviciosSeleccionados[]') 
+    print(servicios)
     
 
     if request.method== 'POST':
@@ -724,27 +806,43 @@ def editPedidoProceso(cedula):
         data1= (fecha_inicio_trabajo, codigo_pedido,)
         cursor.execute(sql1, data1)
         conexion_MySQLdb.commit()
-        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
-        data2= (tecnico, codigo_pedido,)
-        cursor.execute(sql2, data2)
+
+        # 🔹 Eliminar los técnicos previamente asociados a este pedido
+        sql_delete_tecnicos= "DELETE FROM tecnico_atiende_pedido WHERE codigo_pedido = %s"
+        cursor.execute(sql_delete_tecnicos, (codigo_pedido,))
         conexion_MySQLdb.commit()
-        sql3 = "UPDATE pedido_corresponde_a_servicio SET codigo_servicio = %s WHERE codigo_pedido = %s"
-        data3 = (servicio, codigo_pedido,)    
-        cursor.execute(sql3, data3)
+
+        # 🔹 Insertar los técnicos seleccionados nuevamente
+        if tecnicos:
+            sql2 = "INSERT INTO tecnico_atiende_pedido (codigo_pedido, cedula_tecnico) VALUES (%s, %s)"
+            for tecnico in tecnicos:
+                cursor.execute(sql2, (codigo_pedido, tecnico))
+            conexion_MySQLdb.commit()
+
+        # 🔹 Eliminar los servicios previamente asociados a este pedido
+        sql_delete_servicios = "DELETE FROM pedido_corresponde_a_servicio WHERE codigo_pedido = %s"
+        cursor.execute(sql_delete_servicios, (codigo_pedido,))
         conexion_MySQLdb.commit()
+
+        if servicios:  
+            sql3 = "INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES (%s, %s)"
+            for codigo_servicio in servicios:  
+                cursor.execute(sql3, (codigo_pedido, codigo_servicio))
+            conexion_MySQLdb.commit()
+
+
         cursor.close()
-        flash ('Datos actualizados correctamente.')
+        flash ('Pedido actualizados correctamente.')
 
     return redirect(url_for('verRegistrosPedidos'))
+     
 
-@app.route('/editPedidoPendiente/<string:cedula>', methods=['POST'])
-def editPedidoPendiente(cedula):
+@app.route('/editPedidoPendiente/<string:codigo_pedido>', methods=['POST'])
+def editPedidoPendiente(codigo_pedido):
     
     
-    tecnico            = request.form['tecnico']
     codigo_pedido       = request.form['codigo_pedido']
     fecha_inicio_trabajo = request.form['fecha_inicio_trabajo']
-    servicio            = request.form['servicio']
     total_a_pagar       = request.form['total_a_pagar']
     fecha_fin_trabajo   = request.form['fecha_fin_trabajo']
     
@@ -755,14 +853,6 @@ def editPedidoPendiente(cedula):
         sql1= "UPDATE pedido SET  fecha_inicio_trabajo = %s, fecha_fin_trabajo = %s, total_a_pagar = %s WHERE codigo_pedido = %s"
         data1= (fecha_inicio_trabajo,fecha_fin_trabajo,total_a_pagar, codigo_pedido,)
         cursor.execute(sql1, data1)
-        conexion_MySQLdb.commit()
-        sql2= "UPDATE tecnico_atiende_pedido SET cedula_tecnico = %s WHERE codigo_pedido = %s"
-        data2= (tecnico, codigo_pedido,)
-        cursor.execute(sql2, data2)
-        conexion_MySQLdb.commit()
-        sql3 = "UPDATE pedido_corresponde_a_servicio SET codigo_servicio = %s WHERE codigo_pedido = %s"
-        data3 = (servicio, codigo_pedido,)    
-        cursor.execute(sql3, data3)
         conexion_MySQLdb.commit()
         cursor.close()
         flash ('Datos actualizados correctamente.')
@@ -776,7 +866,7 @@ def ActualizarPedido(codigo_pedido):
     conexion_MySQLdb = connectionBD()
 
     # Obtener valores del formulario
-    codigo_servicio = request.form.get('servicio')  
+    servicios= request.form.getlist('serviciosSeleccionados[]')
     fecha_inicio_trabajo = request.form.get('fecha_inicio_trabajo')  
     fecha_fin_trabajo = request.form.get('fecha_fin_trabajo')  
     cancelado = request.form.get('cancelado')  # Convertir a Booleano
@@ -786,6 +876,10 @@ def ActualizarPedido(codigo_pedido):
     codigo_pedido = request.form.get('codigo_pedido')  
     referencia = request.form.get('referencia')
     total_a_pagar = request.form.get('total_a_pagar')
+
+    print(servicios)
+
+    session['total_a_pagar'] = total_a_pagar
 
     if request.method == 'POST':
         conexion_MySQLdb = connectionBD()
@@ -808,11 +902,13 @@ def ActualizarPedido(codigo_pedido):
         cursor.close()
 
         cursor = conexion_MySQLdb.cursor()
-        sql2= """INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES (%s,%s) """
-        data2= (codigo_pedido, codigo_servicio,)
-        cursor.execute(sql2, data2)
-        conexion_MySQLdb.commit()
-
+       
+        for servicios in servicios:
+                sql2= """INSERT INTO pedido_corresponde_a_servicio (codigo_pedido, codigo_servicio) VALUES (%s, %s)"""
+                data2= (codigo_pedido, servicios)
+                cursor.execute(sql2, data2)
+                conexion_MySQLdb.commit()
+        
         if cancelado == '1':
             cursor = conexion_MySQLdb.cursor()
             referencia = referencia if referencia else None  
@@ -947,28 +1043,45 @@ def recuperarContraseña():
  
     if request.method== 'POST':
         usuario   = request.form.get('usuario')
-        pregunta_seguridad = request.form.get('pregunta_seguridad')
 
         cursor = conexion_MySQLdb.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM usuario WHERE usuario = %s', (usuario,))
+        cursor.execute('SELECT usuario, pregunta_seguridad FROM usuario WHERE usuario = %s', (usuario,))
         account = cursor.fetchone()
         cursor.close()
         
         if account:
-            # Si el usuario existe, comparamos la pregunta de seguridad
-            if account['pregunta_seguridad'] == pregunta_seguridad:
-                # Las respuestas a la preguntas de seguridad o la pregunta, coinciden, redireccionar al cambio de contraseña
+            # Redirigir a la siguiente plantilla con la pregunta de seguridad
+            return render_template('login/recuperarContraseña2.html', usuario=usuario, pregunta_seguridad=account['pregunta_seguridad'])
+        else:
+            flash('Usuario no encontrado.')
+            return render_template('login/recuperarContraseña.html')
+
+    return render_template('login/recuperarContraseña.html')
+
+@app.route('/verificar-respuesta', methods=['POST'])
+def verificarRespuesta():
+    conexion_MySQLdb = connectionBD()
+
+    if request.method == 'POST':
+        usuario = request.form.get('usuario')
+        respuesta_usuario = request.form.get('respuesta_seguridad')  # Respuesta ingresada por el usuario
+
+        cursor = conexion_MySQLdb.cursor(dictionary=True)
+        cursor.execute('SELECT respuesta_seguridad FROM usuario WHERE usuario = %s', (usuario,))
+        account = cursor.fetchone()
+        cursor.close()
+
+        if account:
+            if account['respuesta_seguridad'] == respuesta_usuario:
+                # Redirigir al cambio de contraseña si la respuesta es correcta
                 return redirect(url_for('cambiarContraseña', usuario=usuario))
             else:
-                # Las respuestas no coinciden
-                flash ('La respuesta a la pregunta de seguridad es incorrecta.')
-                return render_template('login/recuperarContraseña.html', mensaje="La respuesta a la pregunta de seguridad es incorrecta.")
-        else:
-            # El usuario no existe
-            flash ('Usuario no encontrado.')
-            return render_template('login/recuperarContraseña.html')
-        
-    return render_template('login/recuperarContraseña.html')
+                flash('La respuesta a la pregunta de seguridad es incorrecta.')
+                return render_template('login/recuperarContraseña2.html', usuario=usuario, pregunta_seguridad=request.form.get('pregunta_seguridad'))
+
+    flash('Hubo un error, intenta de nuevo.')
+    return redirect(url_for('recuperarContraseña'))
+
 
 @app.route('/cambiar-contrasena/<usuario>', methods=['GET', 'POST'])
 def cambiarContraseña(usuario):
@@ -1013,7 +1126,6 @@ def actualizarPerfil(codigo_usuario):
             apellido      = request.form['apellido']
             telefono      = request.form['telefono']
             tipo          = request.form['tipo']
-            cargo         = request.form['cargo']
 
             contraseña          = request.form['contraseña'] 
 
@@ -1030,7 +1142,7 @@ def actualizarPerfil(codigo_usuario):
                     cursor = conexion_MySQLdb.cursor()
                     cursor.execute("UPDATE persona SET nombre = %s, apellido = %s, telefono = %s WHERE cedula = %s", (nombre, apellido, telefono, cedula))
                     conexion_MySQLdb.commit()
-                    cursor.execute('UPDATE empleado SET tipo= %s, cargo =%s WHERE cedula =%s', (tipo, cargo, cedula))
+                    cursor.execute('UPDATE empleado SET tipo= %s WHERE cedula =%s', (tipo, cedula))
                     conexion_MySQLdb.commit()
                     cursor.close()
                     # Actualizar los datos de la sesión con los nuevos valores
@@ -1044,7 +1156,19 @@ def actualizarPerfil(codigo_usuario):
 
         return redirect(url_for('perfil'))
 
+'''def verificar_inactividad():
+    if 'ultimo_acceso' in session:
+        tiempo_inactivo = (datetime.now() - session['ultimo_acceso']).total_seconds()
+        if tiempo_inactivo > 300:  # 300 segundos = 5 minutos
+            session.pop('conectado', None)  # Cierra la sesión
+            session.pop('ultimo_acceso', None)
+            return redirect(url_for('login'))  # Redirige a la página de inicio de sesión
+    session['ultimo_acceso'] = datetime.now()
 
+@app.before_request
+def actualizar_ultimo_acceso():
+    if 'conectado' in session:
+        session['ultimo_acceso'] = datetime.now()'''
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)

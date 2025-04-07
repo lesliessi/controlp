@@ -49,9 +49,16 @@ def inicio():
     if 'conectado' in session:
         nombre = session.get('nombre', 'Desconocido')
         apellido = session.get('apellido', 'Desconocido')
-
-        if session['rol']==1:
-            return render_template ('dashboard/dashboard.html', nombre=nombre, apellido=apellido)
+        
+        
+        pedidos= pedidos_por_atender()
+      
+        cantidad_pedidos = 0  # Asigna un valor predeterminado
+        if pedidos:
+            cantidad_pedidos = pedidos[0]['pedidos_por_atender'] if pedidos else 0
+        if session['rol'] == 1:
+            
+            return render_template('dashboard/dashboard.html', nombre=nombre, apellido=apellido, pedidos_por_atender=cantidad_pedidos)
         else:
             return render_template ('dashboard2/dashboard2.html', nombre=nombre, apellido=apellido)
     return render_template('login/login.html')
@@ -67,7 +74,7 @@ def perfil():
 
         conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor()
-    cursor.execute ("SELECT usuario.codigo_usuario, usuario.usuario, persona.cedula, persona.nombre, persona.apellido, persona.telefono, empleado.tipo, empleado.cargo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula JOIN usuario ON usuario.cedula=persona.cedula WHERE codigo_usuario=%s", (codigo_usuario,))
+    cursor.execute ("SELECT usuario.codigo_usuario, usuario.usuario, persona.cedula, persona.nombre, persona.apellido, persona.telefono, empleado.tipo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula JOIN usuario ON usuario.cedula=persona.cedula WHERE codigo_usuario=%s", (codigo_usuario,))
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []
@@ -120,7 +127,7 @@ def historialSesiones():
 def verRegistrosEmpleados():
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor()
-    cursor.execute ("SELECT telefono.prefijo_telefonico, telefono.numero, persona.cedula, persona.nombre, persona.apellido, empleado.tipo, empleado.cargo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula JOIN telefono ON telefono.cedula=persona.cedula ")
+    cursor.execute ("SELECT telefono.prefijo_telefonico, telefono.numero, persona.cedula, persona.nombre, persona.apellido, empleado.tipo FROM empleado INNER JOIN persona ON empleado.cedula=persona.cedula JOIN telefono ON telefono.cedula=persona.cedula ")
     myresult = cursor.fetchall()
     #Convertir los datos a diccionario
     insertObject = []
@@ -164,6 +171,9 @@ def verRegistrosClientes():
 
 @app.route('/ver-registros-Pedidos') 
 def verRegistrosPedidos():
+    dataPedidosEnCurso = verPedidosEnCurso()
+    dataServicios=listaServicios()
+    tasa_bcv = obtener_tasa_bcv()
     conexion_MySQLdb = connectionBD()
     cursor    = conexion_MySQLdb.cursor ()
     cursor.execute ("""SELECT ciudad.codigo_ciudad, ciudad.nombre_ciudad as ciudad, estado.nombre_estado as estado,
@@ -199,23 +209,23 @@ JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadodeproceso.codigo_e
 
     if session['rol']==1:
         return render_template ('dashboard/pedidos/verPedidos.html', dataPedidos1 = insertObject , dataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos2 = verPedidosEnCurso(),
-                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados())
+                                 dataClientes=listaClientes(), dataServicios=dataServicios,dataServiciosPreventivos=listaServiciosPreventivos(),
+                                   dataServiciosCorrectivos=listaServiciosCorrectivos(), dataPedidos2 = dataPedidosEnCurso,
+                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados(), tasa_bcv = tasa_bcv)
     else:
         return render_template ('dashboard2/pedidos2/verPedidos2.html', dataPedidos1 = insertObject, dataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios(),dataPedidos2 = verPedidosEnCurso(),
-                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados())
+                                 dataClientes=listaClientes(), dataServicios=listaServicios(),dataServiciosPreventivos=listaServiciosPreventivos(),
+                                   dataServiciosCorrectivos=listaServiciosCorrectivos(), dataPedidos2 = dataPedidosEnCurso,
+                                   dataPedidos3=verPedidosPendientes(), dataPedidos4 = verPedidosCompletados(), tasa_bcv = tasa_bcv)
 
     #return render_template('dashboard/pedidos/verPedidos.html', data = insertObject)
 @app.route('/ver-registros-Pedidos-completados') 
 def verRegistrosPedidosCompletados():
     
     if session['rol']==1:
-        return render_template ('dashboard/pedidos/verPedidosCompletados.html',  dataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos4 = verPedidosCompletados())
+        return render_template ('dashboard/pedidos/verPedidosCompletados.html', dataPedidos4 = verPedidosCompletados())
     else:
-        return render_template ('dashboard2/pedidos2/verPedidosCompletados2.html', dataPedataTecnicos=listaTecnicos(),
-                                 dataClientes=listaClientes(), dataServicios=listaServicios(), dataPedidos4=verPedidosCompletados())
+        return render_template ('dashboard2/pedidos2/verPedidosCompletados2.html', dataPedidos4 = verPedidosCompletados())
 
 
 def dataDireccion(cliente):
@@ -259,6 +269,7 @@ def verRegistrosServicios():
         return render_template ('dashboard2/servicios2/verServicios2.html', data = insertObject)
 
     #return render_template('dashboard/servicios/verServicios.html', data = insertObject)
+#return render_template('dashboard/servicios/verServicios.html', data = insertObject)
 @app.route('/generar-reporte-completo-pedidos')
 def generar_reporte_completo_pedidos():
     try:
@@ -288,11 +299,11 @@ class reportePDF(object):
         alineacion = ParagraphStyle(name="alineacion", alignment=TA_RIGHT, parent=estilos["Normal"])
 
         # Encabezado
-        encabezadoNombre = Paragraph("Andres Niño 1.0", estilos["Normal"])
+        encabezadoNombre = Paragraph("Multiservicios Frielec, C.A", estilos["Normal"])
         anchura, altura = encabezadoNombre.wrap(archivoPDF.width, archivoPDF.topMargin)
         encabezadoNombre.drawOn(canvas, archivoPDF.leftMargin, 736)
 
-        fecha = datetime.now().strftime("%A, %d - %B - %Y")
+        fecha = utcnow().to("local").format("dddd, DD - MMMM - YYYY", locale="es")
         fechaReporte = fecha.replace("-", "de")
 
         encabezadoFecha = Paragraph(fechaReporte, alineacion)
@@ -300,14 +311,14 @@ class reportePDF(object):
         encabezadoFecha.drawOn(canvas, archivoPDF.leftMargin, 736)
 
         # Pie de página
-        piePagina = Paragraph("Reporte generado por Andres Niño.", estilos["Normal"])
+        piePagina = Paragraph("Reporte generado por Control+P.", estilos["Normal"])
         anchura, altura = piePagina.wrap(archivoPDF.width, archivoPDF.bottomMargin)
         piePagina.drawOn(canvas, archivoPDF.leftMargin, 15 * mm + (0.2 * inch))
 
         canvas.restoreState()
 
     def convertirDatos(self):
-        estiloEncabezado = ParagraphStyle(name="estiloEncabezado", alignment=TA_LEFT, fontSize=10, textColor=colors.white, fontName="Helvetica-Bold", parent=self.estilos["Normal"])
+        estiloEncabezado = ParagraphStyle(name="estiloEncabezado", alignment=TA_LEFT, fontSize=7, textColor=colors.white, fontName="Helvetica-Bold", parent=self.estilos["Normal"])
         estiloNormal = self.estilos["Normal"]
         estiloNormal.alignment = TA_LEFT
 
@@ -331,12 +342,20 @@ class reportePDF(object):
         """
     Exportar los datos a un archivo PDF en memoria (buffer).
     """
+        tituloPrincipalStyle = ParagraphStyle(
+            name="tituloPrincipal",
+            alignment=TA_CENTER,
+            fontSize=13,  # Ajusta el tamaño de fuente aquí para el título principal
+            leading=10,
+            textColor=colors.black,
+            parent=self.estilos["Heading1"]
+    )
         alineacionTitulo = ParagraphStyle(
             name="centrar",
             alignment=TA_CENTER,
-            fontSize=13,
+            fontSize=7,
             leading=10,
-            textColor=colors.purple,
+            textColor=colors.black,
             parent=self.estilos["Heading1"]
         )
 
@@ -344,9 +363,22 @@ class reportePDF(object):
 
         convertirDatos = self.convertirDatos()
 
-        tabla = Table(convertirDatos, colWidths=(self.ancho-100)/len(self.cabecera), hAlign="CENTER")
+            # Modificar colWidths para ajustar el tamaño de las columnas
+        col_widths = [
+            0.6 * inch,  # Ancho para "CÓDIGO PEDIDO" (ajusta según necesites)
+            0.9 * inch,  # Ancho para "CLIENTE" (ajusta según necesites)
+             0.9* inch,
+               1* inch,
+                0.7 * inch,
+                  0.5 * inch,
+                    1 * inch,
+                      2 * inch,  # Ancho para "FECHA PEDIDO" (ajusta según necesites)
+            # ... (ancho para las demás columnas)
+        ]
+
+        tabla = Table(convertirDatos, colWidths=col_widths, hAlign="CENTER")
         tabla.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0),(-1, 0), colors.purple),
+            ("BACKGROUND", (0, 0),(-1, 0), colors.green),
             ("ALIGN", (0, 0),(0, -1), "LEFT"),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("INNERGRID", (0, 0), (-1, -1), 0.50, colors.black),
@@ -354,7 +386,7 @@ class reportePDF(object):
         ]))
 
         historia = []
-        historia.append(Paragraph(self.titulo, alineacionTitulo))
+        historia.append(Paragraph(self.titulo, tituloPrincipalStyle))
         historia.append(Spacer(1, 0.16 * inch))
         historia.append(tabla)
         
@@ -366,7 +398,7 @@ class reportePDF(object):
             rightMargin=50,
             pagesize=letter,
             title="Reporte PDF",
-            author="Andres Niño"
+            author="Control+P"
         )
         try:
             archivoPDF.build(
@@ -415,54 +447,100 @@ def generarReporteCompletoPedidos():
     cursor = conexion_MySQLdb.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT 
-            ciudad.codigo_ciudad, 
-            ciudad.nombre_ciudad AS ciudad, 
-            estado.nombre_estado AS estado,
-            direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
-            persona.nombre AS nombre_cliente, 
-            persona.apellido AS apellido_cliente, 
-            persona.cedula AS cedula_cliente,
-            telefono.prefijo_telefonico, 
-            telefono.numero, 
-            cliente.cedula,
-            pedido.codigo_pedido, 
-            pedido.fecha_pedido, 
-            pedido.cedula_cliente, 
-            pedido.cedula_empleado_registra, 
-            pedido.codigo_estadoDeProceso,
-             COALESCE(pedido.fecha_inicio_trabajo, 'No iniciado') AS fecha_inicio_trabajo,  -- Manejo de NULL en fecha_inicio_trabajo
-            COALESCE(pedido.fecha_fin_trabajo, 'No finalizado') AS fecha_fin_trabajo,  -- Manejo de NULL en fecha_fin_trabajo
-            COALESCE(pedido.total_a_pagar, 0) AS total_a_pagar,  -- Manejo de NULL en total_a_pagar (valor numérico) 
-            pedido.cancelado, 
-            COALESCE(pago.tipo_moneda, 'No especificado') AS tipo_moneda,  -- Manejo de NULL en tipo_moneda
-            COALESCE(pago.fecha_pago, 'No especificado') AS fecha_pago,  -- Manejo de NULL en fecha_pago
-            COALESCE(servicio.tipo, 'No especificado') AS tipo_servicio,  -- Manejo de NULL en servicio.tipo (renombrado para claridad)
-            COALESCE(servicio.descripcion, 'No especificado') AS servicio_descripcion,
-            COALESCE (servicio.codigo_servicio, 'No especificado') AS codigo_servicio,
-            estadoDeProceso.descripcion AS estado_pedido,
-            COALESCE(tecnico.cedula, 'Sin asignar') AS cedula_tecnico,  -- Manejo de NULL en cedula_tecnico
-            COALESCE(tecnico.nombre, 'Sin asignar') AS nombre_tecnico,  -- Manejo de NULL en nombre_tecnico
-            COALESCE(tecnico.apellido, 'Sin asignar') AS apellido_tecnico,  -- Manejo de NULL en apellido_tecnico
-            empleado.nombre AS nombre_empleado, 
-            empleado.apellido AS apellido_empleado
-        FROM estado 
-        JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
-        JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
-        JOIN persona ON direccion.cedula = persona.cedula 
-        JOIN telefono ON persona.cedula = telefono.cedula
-        JOIN cliente ON cliente.cedula = persona.cedula
-        JOIN pedido ON pedido.cedula_cliente = cliente.cedula
-        JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
-        LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
-        LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
-        JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
-        LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
-        LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio 
-        LEFT JOIN pago ON pago.codigo_pedido = pedido.codigo_pedido                  
-        ORDER BY pedido.codigo_pedido DESC;
+        SELECT
+    ciudad.codigo_ciudad,
+    ciudad.nombre_ciudad AS ciudad,
+    estado.nombre_estado AS estado,
+    direccion.calle, direccion.sector, direccion.numero_casa, direccion.codigo_ciudad,
+    CONCAT(persona.nombre, ' ', persona.apellido) AS nombre_cliente,
+
+    persona.cedula AS cedula_cliente,
+    telefono.prefijo_telefonico,
+    telefono.numero,
+    cliente.cedula,
+    pedido.codigo_pedido,
+    pedido.fecha_pedido,
+    pedido.cedula_cliente,
+    pedido.cedula_empleado_registra,
+    pedido.codigo_estadoDeProceso,
+    pedido.fecha_inicio_trabajo,
+    pedido.fecha_fin_trabajo,
+    pedido.total_a_pagar,
+    pedido.cancelado,
+    pago.tipo_moneda,
+    pago.fecha_pago,
+    pago.referencia_pago, pago.metodo_pago,
+    estadoDeProceso.descripcion AS estado_pedido,
+
+    --  Agrupamos los técnicos en una sola columna
+    GROUP_CONCAT(DISTINCT tecnico.cedula ORDER BY tecnico.cedula SEPARATOR ',') AS cedulas_tecnicos,
+    GROUP_CONCAT(DISTINCT CONCAT(tecnico.nombre, ' ', tecnico.apellido) ORDER BY tecnico.cedula SEPARATOR ', ') AS nombres_tecnicos,
+
+    GROUP_CONCAT(DISTINCT servicio.codigo_servicio ORDER BY servicio.codigo_servicio SEPARATOR ',') AS codigos_servicios,
+GROUP_CONCAT(DISTINCT servicio.descripcion ORDER BY servicio.codigo_servicio SEPARATOR ', ') AS nombres_servicios,
+
+    empleado.nombre AS nombre_empleado,
+    empleado.apellido AS apellido_empleado
+
+FROM estado
+JOIN ciudad ON estado.codigo_estado = ciudad.codigo_estado
+JOIN direccion ON direccion.codigo_ciudad = ciudad.codigo_ciudad
+JOIN persona ON direccion.cedula = persona.cedula
+JOIN telefono ON persona.cedula = telefono.cedula
+JOIN cliente ON cliente.cedula = persona.cedula
+JOIN pedido ON pedido.cedula_cliente = cliente.cedula
+JOIN persona AS empleado ON empleado.cedula = pedido.cedula_empleado_registra
+
+--  Unimos los técnicos con GROUP_CONCAT
+LEFT JOIN tecnico_atiende_pedido tap ON tap.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN persona AS tecnico ON tap.cedula_tecnico = tecnico.cedula
+
+--  Unimos los servicios con GROUP_CONCAT
+LEFT JOIN pedido_corresponde_a_servicio pcs ON pcs.codigo_pedido = pedido.codigo_pedido
+LEFT JOIN servicio ON servicio.codigo_servicio = pcs.codigo_servicio
+
+--  Unimos los pagos
+LEFT JOIN pago ON pago.codigo_pedido = pedido.codigo_pedido
+
+JOIN estadoDeProceso ON pedido.codigo_estadoDeProceso = estadoDeProceso.codigo_estadoDeProceso
+                   WHERE pedido.fecha_pedido >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+
+
+GROUP BY
+    pedido.codigo_pedido,
+    ciudad.codigo_ciudad,
+    ciudad.nombre_ciudad,
+    estado.nombre_estado,
+    direccion.calle,
+    direccion.sector,
+    direccion.numero_casa,
+    direccion.codigo_ciudad,
+    persona.nombre,
+    persona.apellido,
+    persona.cedula,
+    telefono.prefijo_telefonico,
+    telefono.numero,
+    cliente.cedula,
+    pedido.fecha_pedido,
+    pedido.cedula_cliente,
+    pedido.cedula_empleado_registra,
+    pedido.codigo_estadoDeProceso,
+    pedido.fecha_inicio_trabajo,
+    pedido.fecha_fin_trabajo,
+    pedido.total_a_pagar,
+    pedido.cancelado,
+    pago.tipo_moneda,
+    pago.fecha_pago,
+    pago.referencia_pago, pago.metodo_pago,
+    estadoDeProceso.descripcion,
+    empleado.nombre,
+    empleado.apellido
+
+ORDER BY pedido.codigo_pedido DESC
     """)
     datos = cursor.fetchall()
+    for dato in datos:
+        dato['cancelado'] = 'Sí' if dato['cancelado'] == 1 else 'No'
 
     conexion_MySQLdb.close()
 
@@ -470,14 +548,13 @@ def generarReporteCompletoPedidos():
 
     cabecera = (
         ("codigo_pedido", "CÓDIGO PEDIDO"),
-        ("nombre_cliente", "NOMBRE CLIENTE"),
-        ("apellido_cliente", "APELLIDO CLIENTE"),
+        ("nombre_cliente", "CLIENTE"),
         ("fecha_pedido", "FECHA PEDIDO"),
         ("estado_pedido", "ESTADO PEDIDO"),
         ("total_a_pagar", "TOTAL A PAGAR"),
-        ("cancelado", "CANCELADO"),
-        ("nombre_tecnico", "TÉCNICO ASIGNADO"),
-        ("nombre_empleado", "EMPLEADO REGISTRADOR"),
+        ("cancelado", "PAGADO"),
+        ("nombres_tecnicos", "TÉCNICOS"),
+        ("nombres_servicios", "SERVICIOS"),
     )
 
 
@@ -493,6 +570,7 @@ def generarReporteCompletoPedidos():
 # ===================== FUNCIÓN generarReporte =====================
 
 def generarReporte(reporte):
+    
     
 
     def dict_factory(cursor, row):
@@ -526,6 +604,11 @@ def generarReporte(reporte):
     reporte = reportePDF(titulo, cabecera, datos, nombrePDF).Exportar()
     
     return reporte
+
+    
+
+
+
 
 #
     

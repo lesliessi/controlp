@@ -22,7 +22,7 @@
           <a class=" h4 nav-link active" href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
         
       </ul>  
-        <button type="button" href="#" class="btn btn-light">Exportar PDF</button>
+      <a type="button"  href="{{url_for('generar_reporte_completo_pedidos')}}" class="btn btn-light">Exportar PDF</a>
   </div>
 
 <div class="filtros-container">     
@@ -61,7 +61,7 @@
   
         <div class="botones">
           
-          <button class="btn btn-sm"  id="btn-edit{{d.cedula}}" data-bs-toggle="modal" data-bs-target="#modalCompletado{{d.cedula}}
+          <button class="btn btn-sm"  id="btn-edit{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modalCompletado{{d.codigo_pedido}}
           ">Ver detalles</button>
           <button class="eliminar btn  btn-sm" id="btn-eliminar{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modaleliminar{{d.codigo_pedido}}" >Eliminar</button>
           
@@ -76,111 +76,13 @@
 
               <!-- modal -->
 
-              {% for d in dataPedidos2 %}
+              {% for d in dataPedidos4 %}
   
-              <div class="modal fade" id="modal{{d.cedula}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="/editPedido/{{d.cedula}}" method="post">
-  
-                           
-                          <label for="cliente" class="form-label mt-1">Cliente</label>
-                          <select name="cliente" id="cliente" class="form-control" required>
-                              <option value="{{d.cedula_cliente}}" selected="selected">{{d.nombre_cliente}} {{d.apellido_cliente}}</option>
-                              {% for c in dataClientes %}
-                                <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option> 
-                                {% endfor %} 
-                          </select>                          
-                            <label>Código de pedido</label>
-                            <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
-                            <label for="tecnico" class="form-label mt-1">Técnico asigando</label>
-                              <select name="tecnico" class="form-control" required>
-                                <option value="{{d.cedula_tecnico}}" selected="selected">{{d.nombre_tecnico}} {{d.apellido_tecnico}}</option>
-                                {% for c in dataTecnicos %}
-                                <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
-                                {% endfor %}
-                              </select>
-                              <label>Fecha</label>
-                              <input type="text" class="form-control mb-3 fecha_pedido" id="fecha_pedido"name="fecha_pedido" value="{{d.fecha_pedido}}">
-                            <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
-                     
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-  
-                
-                      </div>
-                    </div>
-                  </div>
-
-                              <!-- modal editar y ver detalles pedidos en proceso-->
-
-              
-                          <div class="modal fade" id="modalProceso{{d.cedula}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                              <div class="modal-content">
-                                <div class="modal-header">
-                                  <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form action="/editPedidoProceso/{{d.cedula}}" method="post">
-              
-                                      
-                                      <label for="cliente" class="form-label mt-1">Cliente: {{d.nombre_cliente}} {{d.apellido_cliente}}</label>
-                                                            
-                                       <div> <label>Código de pedido</label></div>
-                                        <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
-                                        <label for="tecnico" class="form-label mt-1">Técnico asigando</label>
-                                          <select name="tecnico" class="form-control" required>
-                                            <option value="{{d.cedula_tecnico}}" selected="selected">{{d.nombre_tecnico}} {{d.apellido_tecnico}}</option>
-                                            {% for c in dataTecnicos %}
-                                            <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
-                                            {% endfor %}
-                                          </select>
-                                          <label>Fecha del pedido</label>
-                                          <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
-
-                                        <label for="servicio" class="form-label mt-1">Servicio</label>
-                                        <select name="servicio" class="form-control" id="servicio" required>
-                                          <option value="{{d.codigo_servicio}}" selected="selected">{{d.tipo}} - {{d.servicio_descripcion}}</option>
-                                          {% for c in dataServicios %}
-                                          <option value="{{ c.codigo_servicio}}">{{c.tipo}} - {{c.descripcion}}</option>
-                                          {% endfor %}
-                                        </select>
-                                        <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
-                                        <input class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
-                                                    <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
-
-                                  
-                                </div>
-                                <div class="modal-footer">
-                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                                </div>
-                                    </form>
-                                  </div>
-                                </div>
-                              </div>
-              
-                            
-                                  </div>
-                                </div>
-                              </div>
-
+ 
                               <!-- modal editar y ver detalles pedidos pendientes de pago-->
 
               
-                          <div class="modal fade" id="modalPendiente{{d.cedula}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal fade" id="modalCompletado{{d.codigo_pedido}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                               <div class="modal-content">
                                 <div class="modal-header">
@@ -188,48 +90,65 @@
                                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form action="/editPedidoPendiente/{{d.cedula}}" method="post">
+                                    <form action="/editPedidoCompletado/{{d.codigo_pedido}}" method="post">
               
                                       
                                       <label for="cliente" class="form-label mt-1">Cliente: {{d.nombre_cliente}} {{d.apellido_cliente}}</label>
                                                             
                                        <div> <label>Código de pedido</label></div>
                                         <input type="text" class="codigo_pedido form-control" name="codigo_pedido" value="{{d.codigo_pedido}}" readonly>
-                                        <label for="tecnico" class="form-label mt-1">Técnico asigando</label>
-                                          <select name="tecnico" class="form-control" required>
-                                            <option value="{{d.cedula_tecnico}}" selected="selected">{{d.nombre_tecnico}} {{d.apellido_tecnico}}</option>
-                                            {% for c in dataTecnicos %}
-                                            <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
-                                            {% endfor %}
-                                          </select>
+                                        <label for="tecnico" class="form-label mt-1">Técnicos asignados</label>
+                                        <textarea readonly name="tecnico" class="form-control" required>{{ d.nombres_tecnicos }}</textarea>
+                                          
                                           <label>Fecha del pedido</label>
                                           <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
 
-                                        <label for="servicio" class="form-label mt-1">Servicio</label>
-                                        <select name="servicio" class="form-control" id="servicio" required>
-                                          <option value="{{d.codigo_servicio}}" selected="selected">{{d.tipo}} - {{d.servicio_descripcion}}</option>
-                                          {% for c in dataServicios %}
-                                          <option value="{{ c.codigo_servicio}}">{{c.tipo}} - {{c.descripcion}}</option>
-                                          {% endfor %}
-                                        </select>
+                                        <label for="servicio" class="form-label mt-1">Servicios prestados</label>
+                                        <textarea readonly name="servicio" class="form-control" id="servicio" required>{{d.nombres_servicios_correctivos}}, {{d.nombres_servicios_preventivos}}</textarea>                                          
                                         <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
                                         <input class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
                                         <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
                                         <input value="{{d.fecha_fin_trabajo}}" class="form-control  "required type="text" id="fecha_fin_trabajo" name="fecha_fin_trabajo" class="fecha_fin_trabajo" >
                                         
-                                        <label for="total a pagar">Total a pagar</label>
-                                        <input value="{{d.total_a_pagar}}" class="form-control" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" >
-                                      <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+                                        <label for="total a pagar">Total cancelado</label>
+                                        <div value="{{d.total_a_pagar}}" class="form-control" type="number" id="total_a_pagar" name="total_a_pagar" class="total_a_pagar" >{{d.total_a_pagar}}</div>
+                                              <label>Fecha de pago</label>
+                                        <input type="text" name="fecha_pago" class="form-control fecha_pago" id="fecha_pago" value="{{d.fecha_pago}}">
 
-                                </div>
-                                <div class="modal-footer">
-                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                                </div>
-                                    </form>
-                                  </div>
-                                </div>
-                              </div>
-              
+                                        <label>Tipo de moneda</label>
+                                        <select id="tipo_moneda{{ d.codigo_pedido }}" class="form-control tipo-moneda" name="tipo_moneda">
+                                          <option value="{{ d.tipo_moneda }}" selected>
+                                            {% if d.tipo_moneda == 'bolivares' %}
+                                                {% set moneda = 'Bolívares' %}
+                                            {% else %}
+                                                {% set moneda = 'Divisas' %}
+                                            {% endif %}
+                                            {{ moneda }}
+                                        </option>                                          
+                                        {% if d.tipo_moneda == 'divisas' %}
+                                              <option value="bolivares">Bolívares</option>
+                                          {% else %}
+                                              <option value="divisas">Divisas</option>
+                                          {% endif %}
+                                      </select>
+
+                                                  <label>Método de pago</label>
+                                                  <input value="{{d.metodo_pago}}" class="form-control metodo-pago" name="metodo_pago" readonly>
+
+                                                  <label>Referencia</label>
+                                                  <input type="number" value="{{d.referencia_pago}}" class="form-control" id="referencia{{ d.codigo_pedido }}" name="referencia">
+                                              </div>
+                                          
+                                     
+                                           <label class="text-muted">Registrado por empleado {{d.cedula_empleado_registra}} {{d.nombre_empleado}} {{d.apellido_empleado}}</label>
+
+                                            <div class="modal-footer">
+                                            </div>
+                                                </form>
+                                              </div>
+                                            </div>
+                                          </div>
+                          
                             
                                   </div>
                                 </div>
@@ -276,116 +195,7 @@
       locale: "es"           // Español
   });
 </script>
-<script>
-  flatpickr("#fecha_inicio_trabajo", {
-      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
-      enableTime: false,     // Deshabilitar hora (solo fecha)
-      locale: "es"           // Español
-  });
-</script>
 
-<script>
-  flatpickr("#fecha_fin_trabajo", {
-      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
-      enableTime: false,     // Deshabilitar hora (solo fecha)
-      locale: "es"           // Español
-  });
-  flatpickr("#fecha_pago", {
-      dateFormat: "Y-m-d",  // Formato: Año-Mes-Día
-      enableTime: false,     // Deshabilitar hora (solo fecha)
-      locale: "es"           // Español
-  });
-  document.addEventListener('DOMContentLoaded', () => {
-  const elementosFechaPago = document.querySelectorAll('.fecha_pago2'); // Seleccionar por clase
-
-  elementosFechaPago.forEach(elemento => {
-    flatpickr(elemento, {
-      dateFormat: "Y-m-d",
-      enableTime: false,
-      locale: "es"
-    });
-  });
-});
-
-
-// Inicialización de checkboxes y campos dependientes
-document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* modal
-            modal.addEventListener('shown.bs.modal', () => { // Escuchar el evento 'shown.bs.modal'
-                const codigo_pedido = modal.id.replace(/[^0-9]/g, ''); // Extraer el código del pedido del ID del modal
-                const checkbox = modal.querySelector(`#cancelado${codigo_pedido}`);
-                const detallesPago = modal.querySelector(`#detallesPago${codigo_pedido}`);
-                const tipoMoneda = modal.querySelector(`#tipo_moneda${codigo_pedido}`);
-                const metodoPago = modal.querySelector(`#metodo_pago${codigo_pedido}`);
-                const metodoPagoContainer = modal.querySelector(`#metodoPagoContainer${codigo_pedido}`);
-                const referenciaContainer = modal.querySelector(`#referenciaContainer${codigo_pedido}`);
-                
-
-                if (!checkbox || !detallesPago || !tipoMoneda || !metodoPago || !metodoPagoContainer || !referenciaContainer) {
-                    console.warn(`Algunos elementos del modal ${codigo_pedido} no se encontraron.`);
-                    return;
-                }
-
-                function actualizarCampos() {
-                    detallesPago.style.display = checkbox.checked ? "block" : "none";
-                    if (!checkbox.checked) {
-                        metodoPagoContainer.style.display = "none";
-                        referenciaContainer.style.display = "none";
-                    }
-                }
-
-                function actualizarMetodosPago() {
-                    metodoPago.innerHTML = "";
-                    metodoPagoContainer.style.display = "block";
-                    if (tipoMoneda.value === "bolivares") {
-                        metodoPago.innerHTML = `<option value="efectivo">Efectivo</option><option value="pago_movil">Pago Móvil</option>`;
-                    } else {
-                        metodoPago.innerHTML = `<option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option>`;
-                    }
-                }
-
-                function actualizarReferencia() {
-                    referenciaContainer.style.display = (metodoPago.value === "pago_movil" || metodoPago.value === "transferencia") ? "block" : "none";
-                }
-
-                checkbox.addEventListener("change", actualizarCampos);
-                tipoMoneda.addEventListener("change", actualizarMetodosPago);
-                metodoPago.addEventListener("change", actualizarReferencia);
-
-                actualizarCampos();
-                actualizarMetodosPago();
-                actualizarReferencia();
-
-                
-            });
-        });
-
-        function filtrarPedidos(filtro) {
-    let pedidos = document.querySelectorAll('.pedido-item');
-
-    pedidos.forEach(pedido => {
-        if (filtro === 'todos') {
-            pedido.style.display = 'flex';
-        } else if (pedido.classList.contains(filtro)) {
-            pedido.style.display = 'flex';
-        } else {
-            pedido.style.display = 'none';
-        }
-    });
-        };
-document.getElementById("orden-fecha").addEventListener("change", function() {
-    let orden = this.value;
-    let contenedor = document.getElementById("pedidos-container");
-    let pedidos = Array.from(contenedor.getElementsByClassName("pedido-item"));
-
-    pedidos.sort((a, b) => {
-        let fechaA = new Date(a.getAttribute("data-fecha"));
-        let fechaB = new Date(b.getAttribute("data-fecha"));
-
-        return orden === "reciente" ? fechaB - fechaA : fechaA - fechaB;
-    });
-
-    pedidos.forEach(pedido => contenedor.appendChild(pedido));
-});
 </script>
 
 

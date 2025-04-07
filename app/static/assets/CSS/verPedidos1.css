@@ -208,3 +208,19 @@ border-radius: 25px;
 
 
 }
+
+.modal-content {
+    padding: 20px; /* Ajusta el valor del padding según tus necesidades */
+}
+
+.modal-body {
+    width: 100%;
+  max-width: 100%;
+}
+
+.tecnicos-select {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+
+}

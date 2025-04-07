@@ -24,7 +24,7 @@
 
 
 <body class="text-center">
-  <form class="form-login needs-validation" id= "recuperarContraseña" novalidate action="{{ url_for('recuperarContraseña') }}" method='POST'>
+  <form class="form-login needs-validation" id= "recuperarContraseña" novalidate action="{{ url_for('verificarRespuesta') }}" method='POST'>
     
 
 
@@ -65,14 +65,23 @@
           
             
                               <div data-mdb-input-init class="form-outline mb-4">
-                                <input type="text" id="usuario" class="form-control form-control-lg" name="usuario" placeholder="Ingrese su usuario" 
+                                <input type="text" id="usuario" class="form-control form-control-lg" name="usuario" value="{{usuario}}" readonly 
                                 minlength="5" 
                                 maxlength="20" 
                                 pattern="[A-Za-z0-9]+" required/>
                               <div class="invalid-feedback" style="text-justify: auto;">
                               </div>
                               </div>
-                          
+                          <div class="text-justify">
+                              <label for="pregunta_seguridad" style="color: #ffff;">Pregunta de seguridad: {{pregunta_seguridad}}</label>
+                          </div>
+                        
+                              <div data-mdb-input-init class="form-outline mb-4">
+                                <input placeholder="Ingrese su respuesta" class="form-control form-control-lg" type="text"id="respuesta_seguridad" name="respuesta_seguridad" pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+"  oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" required>
+                                <div class="invalid-feedback">
+                                </div>
+                              </div>
+            
                               <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;" class="w-100 btn btn-lg btn btn-light btn-lg btn-block" type="submit">Enviar</button>
 
             
@@ -144,7 +153,7 @@ document.getElementById("recuperarContraseña").addEventListener("submit", funct
       
 
       // Guardar datos del formulario en localStorage
-      localStorage.setItem("usuario", document.getElementById("usuario").value);
+      localStorage.setItem("respuesta_seguridad", document.getElementById("respuesta_seguridad").value);
 
       
       // Validar el formulario
@@ -157,20 +166,20 @@ document.getElementById("recuperarContraseña").addEventListener("submit", funct
   window.onload = function() {
     
 
-      if (localStorage.getItem("usuario")) {
-          document.getElementById("usuario").value = localStorage.getItem("usuario");
-      }
       
+      if (localStorage.getItem("respuesta_seguridad")) {
+          document.getElementById("respuesta_seguridad").value = localStorage.getItem("respuesta_seguridad");
+      }
       
     };
 
   // Limpiar localStorage al abandonar el registro o completar el proceso
-function limpiarLocalStorage() {
-    localStorage.removeItem("usuario");
-    
-}
     
 
+function limpiarLocalStorage() {
+    localStorage.removeItem("respuesta_seguridad");
+    
+}
   
 </script>
 
