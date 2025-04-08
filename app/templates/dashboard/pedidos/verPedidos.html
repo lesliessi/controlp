@@ -29,16 +29,20 @@
 <div class="filtros-container">     
   
   <div class="filtro-botones">
-    <button onclick="filtrarPedidos('todos')" class="btn filtro-btn" style="border-radius: 25px;">Todos</button>
-    <button onclick="filtrarPedidos('por-atender')" class="btn filtro-btn btn-1">Por Atender</button>
-    <button onclick="filtrarPedidos('en-proceso')" class="btn filtro-btn btn-2">En Proceso</button>
-    <button onclick="filtrarPedidos('pendiente-pago')" class="btn filtro-btn btn-3">Pendiente de Pago</button>
+    <button onclick="actualizarFiltroEstado('todos')" class="btn filtro-btn" style="border-radius: 25px;">Todos</button>
+    <button onclick="actualizarFiltroEstado('por-atender')" class="btn filtro-btn btn-1">Por Atender</button>
+    <button onclick="actualizarFiltroEstado('en-proceso')" class="btn filtro-btn btn-2">En Proceso</button>
+    <button onclick="actualizarFiltroEstado('pendiente-pago')" class="btn filtro-btn btn-3">Pendiente de Pago</button>
 </div>
 <div class="filtro-fecha">
-    <label for="orden-fecha">Ordenar por fecha:</label>
+    <label for="orden-fecha">Ordenar por:</label>
     <select id="orden-fecha" class="filtro-select">
-        <option value="reciente">Más Reciente</option>
-        <option value="antiguo">Más Antiguo</option>
+      <option value="">-</option>
+        <option value="hoy">Hoy</option>
+        <option value="semana">Última semana</option>
+        <option value="mes">Último mes</option>
+        <option value="reciente">Más reciente</option>
+        <option value="antiguo">Más antiguo</option>
     </select>
 </div>
 </div> 
@@ -634,20 +638,76 @@ document.querySelectorAll(".modal").forEach(modal => {  // Iterar sobre *cada* m
       }
   });
       };
-document.getElementById("orden-fecha").addEventListener("change", function() {
-  let orden = this.value;
-  let contenedor = document.getElementById("pedidos-container");
-  let pedidos = Array.from(contenedor.getElementsByClassName("pedido-item"));
 
-  pedidos.sort((a, b) => {
-      let fechaA = new Date(a.getAttribute("data-fecha"));
-      let fechaB = new Date(b.getAttribute("data-fecha"));
+      let filtroEstadoActual = 'todos';
+  let filtroFechaActual = '';
 
-      return orden === "reciente" ? fechaB - fechaA : fechaA - fechaB;
+  // Escuchar cambio en el filtro de fecha
+  document.getElementById("orden-fecha").addEventListener("change", function () {
+      filtroFechaActual = this.value;
+      aplicarFiltrosCombinados();
   });
 
-  pedidos.forEach(pedido => contenedor.appendChild(pedido));
-});
+  // Cuando haces clic en un botón de estado
+  function actualizarFiltroEstado(filtro) {
+      filtroEstadoActual = filtro;
+      aplicarFiltrosCombinados();
+  }
+
+  // Función que aplica ambos filtros
+  function aplicarFiltrosCombinados() {
+      const hoy = new Date();
+      const pedidos = document.querySelectorAll('.pedido-item');
+
+      pedidos.forEach(pedido => {
+          const estadoOk = filtroEstadoActual === 'todos' || pedido.classList.contains(filtroEstadoActual);
+
+          const dataFecha = pedido.getAttribute("data-fecha");
+          const [anio, mes, dia] = dataFecha.split("-").map(Number);
+          const fechaPedido = new Date(anio, mes - 1, dia);
+
+          let fechaOk = true;
+
+          if (filtroFechaActual === "hoy") {
+              fechaOk = hoy.getFullYear() === anio &&
+                        (hoy.getMonth() + 1) === mes &&
+                        hoy.getDate() === dia;
+          } else if (filtroFechaActual === "semana") {
+              const haceUnaSemana = new Date();
+              haceUnaSemana.setDate(hoy.getDate() - 7);
+              fechaOk = fechaPedido >= haceUnaSemana;
+          } else if (filtroFechaActual === "mes") {
+              const haceUnMes = new Date();
+              haceUnMes.setMonth(hoy.getMonth() - 1);
+              fechaOk = fechaPedido >= haceUnMes;
+          } else if (filtroFechaActual === "" || filtroFechaActual === "-") {
+              fechaOk = true; // Mostrar todos si no hay filtro
+          }
+
+          if (estadoOk && fechaOk) {
+              pedido.style.display = "flex";
+          } else {
+              pedido.style.display = "none";
+          }
+      });
+
+      // Ordenar si se seleccionó "reciente" o "antiguo"
+      if (filtroFechaActual === "reciente" || filtroFechaActual === "antiguo") {
+          const contenedor = document.getElementById("pedidos-container");
+          const pedidosArray = Array.from(pedidos).filter(p => p.style.display === "flex");
+
+          pedidosArray.sort((a, b) => {
+              const fechaA = new Date(a.getAttribute("data-fecha"));
+              const fechaB = new Date(b.getAttribute("data-fecha"));
+              return filtroFechaActual === "reciente" ? fechaB - fechaA : fechaA - fechaB;
+          });
+
+          pedidosArray.forEach(pedido => contenedor.appendChild(pedido));
+      }
+  }
+
+//Ver tasa BCV
+
 document.addEventListener('DOMContentLoaded', function() {
   // Tu código aquí
   const tasaBCV = parseFloat("{{ tasa_bcv }}");

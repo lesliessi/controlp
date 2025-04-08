@@ -133,8 +133,32 @@
 
 {% block sidebar %}          {% endblock %}
 
+  <!-- Mini sidebar con solo íconos -->
+<div id="miniSidebar" style="
+width: 60px;
+height: 100vh;
+position: fixed;
+background-color: #13162f;
+display: flex;
+flex-direction: column;
+align-items: center;
+padding-top: 20px;
+z-index: 1030;
+">
+<a href="{{url_for('dashboard')}}" class="mb-4">
+  <i class='bx bxs-dashboard' style="color: #fff; font-size: 24px;"></i>
+</a>
+<a href="#" onclick="toggleDropdown('empleadosDropdown')" class="mb-4">
+  <i class='bx bx-help-circle' style="color: #fff; font-size: 24px;"></i>
+</a>
+<a href="#" onclick="toggleDropdown('clientesDropdown')" class="mb-4">
+  <i class='bx bxs-data' style="color: #fff; font-size: 24px;"></i>
+</a>
+<!-- Agrega más íconos aquí -->
+</div>
+
     <nav id="sidebarMenu" class="col-md- d-md-block sidebar collapse" 
-      style="background-color: #1b203e; height: 100vh; position: fixed; overflow-y: auto; width: 300px; padding-left: 20px;">
+      style="background-color: #1b203e; height: 100vh; position: fixed; overflow-y: auto; width: 240x; left: 60px; padding-left: 20px;">
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
 
@@ -146,79 +170,92 @@
           </li>
 
 
-          <div class="nav-item text-nowrap">
+          <div class="nav-item text-nowrap"  style="margin-bottom: -7px;">
             <div class="dropdown">
                 <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
                   style="height: 40px; display: flex; align-items: center; padding-right: 10px;" 
                   onclick="toggleDropdown('empleadosDropdown')"> 
-                  <i class="bx bxs-user-badge" style="color: #fff; font-size: 30px;"></i>
-                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Empleados</i>
+                  <i class="bx bxs-user-badge" style="color: #fff; font-size: 20px;"></i>
+                  <i style="color: #fff; font-size: 16px; font-style: normal; padding-left: 20px;">Empleados</i>
                 </a>
                 <div id="empleadosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosEmpleados')}}">Ver registros</a>
-                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarEmpleado')}}">Registrar</a>
+                  <a class="dropdown-item"  style="padding-left: 30px; font-size: 16px; " href="{{url_for('verRegistrosEmpleados')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px; font-size: 16px;" href="{{url_for('registrarEmpleado')}}">Registrar</a>
                </div>
             </div>
           </div>
      
-          <div class="nav-item text-nowrap">
+          <div class="nav-item text-nowrap" style="margin-bottom: -7px;">
             <div class="dropdown">
                 <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
                   style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
                   onclick="toggleDropdown('clientesDropdown')"> 
-                  <i class="bx bxs-user-badge" style="color: #fff; font-size: 30px;"></i>
-                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Clientes</i>
+                  <i class="bx bxs-group" style="color: #fff; font-size: 20px;"></i>
+                  <i style="color: #fff; font-size: 16px;; font-style: normal; padding-left: 20px;">Clientes</i>
                 </a>
                 <div id="clientesDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosClientes')}}">Ver registros</a>
-                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarCliente')}}">Registrar</a>
+                  <a class="dropdown-item"  style="padding-left: 30px ;font-size: 16px;  " href="{{url_for('verRegistrosClientes')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;font-size: 16px;" href="{{url_for('registrarCliente')}}">Registrar</a>
                </div>
             </div>
           </div>
 
 
-          <div class="nav-item text-nowrap">
+          <div class="nav-item text-nowrap" style="margin-bottom: -7px;">
             <div class="dropdown">
                 <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
                   style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
                   onclick="toggleDropdown('pedidosDropdown')"> 
-                  <i class="bx bxs-file" style="color: #fff; font-size: 30px;"></i>
-                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Pedidos</i>
+                  <i class="bx bxs-file" style="color: #fff; font-size: 20px;"></i>
+                  <i style="color: #fff; font-size: 16px; font-style: normal; padding-left: 20px;">Pedidos</i>
                 </a>
                 <div id="pedidosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosPedidos')}}">Ver registros</a>
-                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('nuevoPedido')}}">Registrar</a>
+                  <a class="dropdown-item"  style="padding-left: 30px;font-size: 16px;  " href="{{url_for('verRegistrosPedidos')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px;font-size: 16px;" href="{{url_for('nuevoPedido')}}">Registrar</a>
                </div>
             </div>
           </div>
 
-          <div class="nav-item text-nowrap">
+          <div class="nav-item text-nowrap" style="margin-bottom: -7px;">
             <div class="dropdown">
                 <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
                   style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
                   onclick="toggleDropdown('serviciosDropdown')"> 
-                  <i class="bx bxs-cog" style="color: #fff; font-size: 30px;"></i>
-                  <i style="color: #fff; font-size: 20px; font-style: normal; padding-left: 20px;">Servicios</i>
+                  <i class="bx bxs-cog" style="color: #fff; font-size: 20px;"></i>
+                  <i style="color: #fff; font-size: 16px; font-style: normal; padding-left: 20px;">Servicios</i>
                 </a>
                 <div id="serviciosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item"  style="padding-left: 30px;  " href="{{url_for('verRegistrosServicios')}}">Ver registros</a>
-                  <a class="dropdown-item" style="padding-left: 30px;" href="{{url_for('registrarServicio')}}">Registrar</a>
+                  <a class="dropdown-item"  style="padding-left: 30px;  font-size: 16px;" href="{{url_for('verRegistrosServicios')}}">Ver registros</a>
+                  <a class="dropdown-item" style="padding-left: 30px; font-size: 16px;" href="{{url_for('registrarServicio')}}">Registrar</a>
                </div>
             </div>
           </div>
             
+          <div class="nav-item text-nowrap" style="margin-bottom: -7px;">
+            <div class="dropdown">
+                <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
+                  style="height: 40px; display: flex; align-items: center; padding-right: 10px; " 
+                  onclick="toggleDropdown('usuariosDropdown')"> 
+                  <i class="bx bxs-user" style="color: #fff; font-size: 20px;"></i>
+                  <i style="color: #fff; font-size: 16px; font-style: normal; padding-left: 20px;">Usuarios</i>
+                </a>
+                <div id="usuariosDropdown" class="dropdown-container  " style="display: none ; " aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item"  style="padding-left: 30px;  font-size: 16px;" href="{{url_for('administrarUsuarios')}}">Administrar usuarios</a>
+               </div>
+            </div>
+          </div>
 
            
 
     </nav>
 
-<div class="main-content" style="margin-left: 300px; width: calc(100%);">
+<div class="main-content" style="margin-left: 300px; width: calc(100%); padding-top: 60px; padding-bottom: 60px;">
 
 <!--Menu superior horizontal-->
 
 
 <header class="navbar navbar-dark sticky-top flex-md-nowrap shadow " 
-    style="height: 70px; display: flex; align-items: center; background-color: #fff; width: calc(100%);" >
+    style="position: fixed; top: 0; left: 310px; height: 60px; width: calc(100% - 300px); background-color: #fff; z-index: 1000; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px;" >
 
 
   <div class="navbar-nav ms-auto"  >
@@ -227,8 +264,8 @@
       <div class="dropdown">
           <a href="#" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link" 
             style="height: 40px; display: flex; align-items: center; padding-right: 10px; "> 
-            <i style="color: #1b203e; font-size: 20px; font-style: normal; padding-right: 3px;">{{ session['usuario'] }}</i>
-            <i class='bx bxs-user-circle' style="color: #1b203e; font-size: 50px;"> </i>
+            <i style="color: #1b203e; font-size: 20px; font-style: normal; padding-right: 3px; padding-top: 10px;">{{ session['usuario'] }}</i>
+            <i class='bx bxs-user-circle' style="color: #1b203e; font-size: 50px;  padding-top: 15px;"> </i>
           </a>
           <div class="dropdown-menu dropdown-menu-end mt-2 " style="margin-top: 10px; position: absolute; z-index: 1050;  " aria-labelledby="dropdownMenuButton">
             <!---<a class="dropdown-item" href="{{url_for('perfil')}}">Perfil</a>--->
