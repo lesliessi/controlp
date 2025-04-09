@@ -13,7 +13,7 @@
 {% block content %} 
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Empleados registrados</h1>
+        <h3 class="h2">Empleados registrados</h3>
       
   </div>
 
@@ -53,7 +53,7 @@
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">{{usuario}}</h1>
+                    <h3 class="modal-title fs-5" id="exampleModalLabel">{{usuario}}</h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -72,9 +72,11 @@
                               <option value="0416">0416</option>
                               <option value="0426">0426</option>
                             </select>
-                            <input value="{{d.numero}}" type="number" max="999999999999999" id="numero" name="numero" class="form-control col-md-6" ondrop="return false;" onpaste="return false;"
-                            onkeypress="return event.charCode>=48 && event.charCode<=57" required>
-                            <label for="placeholder" style="color: gray">Ej. 049876543</label>
+                            <input value="{{d.numero}}" type="number" max="999999999999999" id="numero" name="numero" class="form-control col-md-6" ondrop="return false;" onpaste="return false;" value="{{d.numero}}"
+                            onkeypress="return event.charCode>=48 && event.charCode<=57" minlength="7" 
+                                    maxlength="7" 
+                                    pattern="[0-9]+{7,7}" 
+                                    title="El número debe tener 7 dígitos." required>
                           </div>
                           <label>Tipo</label>
                           <select name="tipo" class="form-control" required selected>----Seleccione-----
@@ -105,7 +107,7 @@
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
+                    <h3 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">

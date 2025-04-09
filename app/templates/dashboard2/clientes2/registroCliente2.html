@@ -1,6 +1,6 @@
 <title>Registro de cliente</title>
 
-{% extends "dashboard/basemenu.html" %}
+{% extends "dashboard2/basemenu2.html" %}
 
 {% block title %}Registro de cliente{% endblock %}
 
@@ -15,7 +15,7 @@
 
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Registrar cliente</h1>
+        <h3 class="h2">Registrar cliente</h3>
       </div>
 
         <!---Formulario-->
@@ -24,12 +24,13 @@
 
           <div class="col-md-6">
 
-        
+            
 <div class="form-group row">
   <div class="col-md-6">  <label for="cedula" class="form-label">Cédula</label>
-      <input type="number" min="1" max="9999999999" name="cedula" class="form-control" 
-             oninput="this.value = this.value.slice(0, 10)" onkeypress="return event.charCode>=48 && event.charCode<=57" autofocus required>
-      <label for="placeholder" class="form-text text-muted">Ej. 12345678</label>
+    <input id="cedula"placeholder="Ej. 12345678" type="text" min="0000001" max="999999999" name="cedula" class="form-control" ondrop="return false;" onpaste="return false;"
+    onkeypress="return event.charCode>=48 && event.charCode<=57" autofocus maxlength="8" 
+    minlength="7" 
+    title="La cedula debe tener entre 7 y 8 dígitos." pattern="[0-9]+{7,9}" required>
   </div>
   <div class="col-md-6">  
     <label for="numero" class="form-label">Teléfono</label>
@@ -44,11 +45,13 @@
               </select>
           </div>
           <div class="col-md-8">
-              <input type="number" id="numero" name="numero" class="form-control"
-                     oninput="this.value = this.value.slice(0, 15)" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required>
+            <input id="numero" placeholder="Ej. 049876543" type="text" min="0000001" max="9999999" name="numero" class="form-control" ondrop="return false;" onpaste="return false;"
+            onkeypress="return event.charCode>=48 && event.charCode<=57" minlength="7" 
+            maxlength="7" 
+            pattern="[0-9]+{7,7}" 
+            title="El número debe tener 7 dígitos." required>
           </div>
           <div class="col-md-12">
-              <label for="placeholder" class="form-text text-muted">Ej. 049876543</label>
           </div>
       </div>
   </div>
@@ -67,9 +70,9 @@
 </div>
 
 
-        <h2 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-          <span>Dirección</span>
-        </h2>
+        <h5 class="justify-content-between border-bottom">
+          Dirección
+        </h5>
 <div class="form-group row">
         <div class="mb-6">
             <label for="calle" class="form-label">Calle</label>
@@ -148,7 +151,18 @@
         
 
 
-
+        <script>
+          // Cierra cualquier modal abierto antes de abrir otro
+          document.querySelectorAll('[data-bs-toggle="modal"]').forEach(btn => {
+            btn.addEventListener('click', function () {
+              const modals = document.querySelectorAll('.modal.show');
+              modals.forEach(m => {
+                const modalInstance = bootstrap.Modal.getInstance(m);
+                if (modalInstance) modalInstance.hide();
+              });
+            });
+          });
+        </script>
 
 </body>
 

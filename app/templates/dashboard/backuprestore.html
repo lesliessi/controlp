@@ -1,0 +1,103 @@
+
+<title>Dashboard</title>
+
+{% extends "dashboard/basemenu.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+
+
+{% block sidebar %}{% endblock %}
+
+
+
+{% block content %} 
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/dashboard.css')}}">
+
+    <main class=" px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h3 class="h3">Backup y restore</h3>
+        
+           
+      </div>
+
+      <div class="container " style="padding-top: -10px; " >
+      <h4 style="margin-top: -40px; padding-bottom: 5px;" class="border-bottom">Respaldo de la base de datos</h4>
+      <small style="font-style:italic; font: size 7px; color: gray; margin-bottom: 25px;">Mensualmente se generará un respaldo de manera automática.</small>
+      <div>
+          <!-- Botón Generar respaldo -->
+          <a class="button btn" style="padding-left: 30px; background: #beb8b8; margin-top: 15px;" href="{{ url_for('ejecutar_respaldo') }}">
+          Generar respaldo
+          </a>
+        </div>
+
+      <h4 style="padding-top: 50px; padding-bottom: 5px;" class="border-bottom">Restaurar base de datos</h4>
+      <small style="font-style:italic; font: size 7px; color: gray; margin-bottom: 25px;">Importe un archivo manualmente para restaurar los datos.</small>
+
+          <!-- Botón Importar respaldo con formulario -->
+          <form id="formRestaurar" action="{{ url_for('restaurar_bd') }}" method="POST" enctype="multipart/form-data">
+            <label for="archivo_sql" class="btn" style="padding-left: 30px; cursor: pointer; background: #beb8b8; margin-top: 15px;">
+              Importar respaldo
+            </label>
+            <input type="file" id="archivo_sql" name="archivo_sql" accept=".sql" required style="display: none;" onchange="mostrarModal()">
+          </form>
+          
+        </div>
+      </div>
+    </div>
+    <!-- Modal de confirmación -->
+<div id="modalConfirmacion" style="display:none; position: fixed; top: 0; left: 0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+  <div style="background: white; padding: 20px; max-width: 400px; margin: 100px auto; border-radius: 10px; text-align: center;">
+    <p>¿Estás seguro de que deseas restaurar la base de datos? Esta acción sobrescribirá los datos actuales.</p>
+    <button onclick="confirmarEnvio()" class="btn" style=" background: #beb8b8;">Sí, restaurar</button>
+    <button onclick="cancelarEnvio()" class="btn">Cancelar</button>
+  </div>
+</div>
+
+ </div>   
+    <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+
+ <!-- CONFIRMACIÓN DE RESTAURACIÓN-->
+<script>
+  function confirmarRestauracion() {
+    return confirm("⚠️ ¿Estás seguro de que deseas restaurar la base de datos?\nEsto reemplazará los datos actuales.");
+  }
+</script>
+<script>
+  
+
+</script>
+<script>
+  function mostrarModal() {
+    // Mostrar el modal cuando se selecciona un archivo
+    document.getElementById('modalConfirmacion').style.display = 'block';
+  }
+
+  function confirmarEnvio() {
+    // Enviar el formulario si el usuario confirma
+    document.getElementById('modalConfirmacion').style.display = 'none';
+    document.getElementById('formRestaurar').submit();
+  }
+
+  function cancelarEnvio() {
+    // Ocultar el modal y limpiar el archivo seleccionado
+    document.getElementById('modalConfirmacion').style.display = 'none';
+    document.getElementById('archivo_sql').value = ''; // Limpiar selección
+  }
+</script>
+<script>
+  // Cierra cualquier modal abierto antes de abrir otro
+  document.querySelectorAll('[data-bs-toggle="modal"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const modals = document.querySelectorAll('.modal.show');
+      modals.forEach(m => {
+        const modalInstance = bootstrap.Modal.getInstance(m);
+        if (modalInstance) modalInstance.hide();
+      });
+    });
+  });
+</script>
+</body>
+
+{% endblock %}
+
