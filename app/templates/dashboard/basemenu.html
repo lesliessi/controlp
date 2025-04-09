@@ -118,6 +118,45 @@
   border-radius: 25px;
 }
 
+/* Estilos para el modal */
+.modal {
+  display: none; /* Inicialmente el modal está oculto */
+  position: fixed;
+  z-index: 1; /* Se asegura de que el modal esté encima de otros elementos */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  overflow: auto; /* Permite desplazarse si el contenido es largo */
+  padding-top: 60px;
+}
+
+/* Contenido del modal */
+.modal-content {
+  background-color: #fff;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Ancho del modal */
+}
+
+/* Estilo para el botón de cerrar */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
     </style>
 
 
@@ -148,10 +187,23 @@ z-index: 1030;
 <a href="{{url_for('dashboard')}}" class="mb-4">
   <i class='bx bxs-dashboard' style="color: #fff; font-size: 24px;"></i>
 </a>
-<a href="#" onclick="toggleDropdown('empleadosDropdown')" class="mb-4">
+<a href="#" onclick="toggleModal('manualModal')" class="mb-4">
   <i class='bx bx-help-circle' style="color: #fff; font-size: 24px;"></i>
 </a>
-<a href="#" onclick="toggleDropdown('clientesDropdown')" class="mb-4">
+
+<!-- Modal del manual de usuario -->
+<div id="manualModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span onclick="toggleModal('manualModal')" class="close">&times;</span>
+    <h2>Manual de Usuario</h2>
+    <!-- Contenedor para el PDF -->
+    <div id="pdf-container">
+      <embed id="manual-pdf" src="" type="application/pdf" width="100%" height="500px">
+    </div>
+  </div>
+</div>
+
+<a href="{{url_for('backup_y_restore')}}" onclick="" class="mb-4">
   <i class='bx bxs-data' style="color: #fff; font-size: 24px;"></i>
 </a>
 <!-- Agrega más íconos aquí -->
@@ -308,6 +360,30 @@ z-index: 1030;
   if (!isVisible) {
     dropdown.style.display = "block";
     dropdown.classList.add('open');
+  }
+}
+// Función para abrir o cerrar el modal
+function toggleModal(modalId) {
+  const modal = document.getElementById(modalId);
+  const pdfContainer = document.getElementById("pdf-container");
+  const pdfEmbed = document.getElementById("manual-pdf");
+
+  if (modal.style.display === "none" || modal.style.display === "") {
+    modal.style.display = "block"; // Muestra el modal
+    
+    // Aquí cargamos el archivo PDF en el embed
+    pdfEmbed.src = "/static/assets/pdf/Control+P_Manual_de_usuario.pdf"; // Cambia esta URL a la ubicación del archivo PDF
+  } else {
+    modal.style.display = "none"; // Oculta el modal
+    pdfEmbed.src = ""; // Limpia la fuente del PDF cuando el modal se cierra
+  }
+}
+
+// Cerrar el modal si se hace clic fuera de él
+window.onclick = function(event) {
+  const modal = document.getElementById("manualModal");
+  if (event.target === modal) {
+    toggleModal('manualModal');
   }
 }
 
