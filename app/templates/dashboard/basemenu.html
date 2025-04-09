@@ -34,6 +34,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+ <!-- Antes del </body> -->
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+
 
     <style>
       .bd-placeholder-img {
@@ -119,7 +124,7 @@
 }
 
 /* Estilos para el modal */
-.modal {
+.custom-modal {
   display: none; /* Inicialmente el modal está oculto */
   position: fixed;
   z-index: 1; /* Se asegura de que el modal esté encima de otros elementos */
@@ -133,7 +138,7 @@
 }
 
 /* Contenido del modal */
-.modal-content {
+.custom-modal-content {
   background-color: #fff;
   margin: 5% auto;
   padding: 20px;
@@ -142,7 +147,7 @@
 }
 
 /* Estilo para el botón de cerrar */
-.close {
+.custom-close {
   color: #aaa;
   float: right;
   font-size: 28px;
@@ -184,18 +189,24 @@ align-items: center;
 padding-top: 20px;
 z-index: 1030;
 ">
-<a href="{{url_for('dashboard')}}" class="mb-4">
-  <i class='bx bxs-dashboard' style="color: #fff; font-size: 24px;"></i>
+<a href="{{url_for('dashboard')}}" class="mb-4" title="Dashboard">
+  <i class='bx bxs-dashboard' style="color: #fff; font-size: 24px;" ></i>
 </a>
 <a href="#" onclick="toggleModal('manualModal')" class="mb-4">
-  <i class='bx bx-help-circle' style="color: #fff; font-size: 24px;"></i>
+  <i class='bx bx-help-circle' style="color: #fff; font-size: 24px;"title="Acerca de"></i>
 </a>
 
 <!-- Modal del manual de usuario -->
-<div id="manualModal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <span onclick="toggleModal('manualModal')" class="close">&times;</span>
-    <h2>Manual de Usuario</h2>
+<div id="manualModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span onclick="toggleModal('manualModal')" class="custom-close"       style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">
+      &times;</span>
+    <div class="custom-modal-header"> <h3>Acerca de</h3></div>
+    <div class="custom-modal-content " style="text-align: center;">
+      <img src="/static/assets/img/logo.png" alt="Logo" style="width: 300px; margin-bottom: 20px;" >
+      <p style="width: 500px; text-align: center; margin: 0 auto;">Control+P es un sistema de infromación automatizado para el control de pedidos de la empresa Multiservicios Frielec, C.A, desarrollado por el equipo investigador: Leslie Rodríguez, Darwin Francis, Mariana Millán, Raniel Quijada, Ali Medina, en el año 2025. Cuenta una serie de módulos y funcionalidades que permiten gestionar de manera eficiente las órdenes y pedidos que recibe la empresa. </p>      
+      </div>
+<h4>Manual de usuario</h4>
     <!-- Contenedor para el PDF -->
     <div id="pdf-container">
       <embed id="manual-pdf" src="" type="application/pdf" width="100%" height="500px">
@@ -203,9 +214,10 @@ z-index: 1030;
   </div>
 </div>
 
-<a href="{{url_for('backup_y_restore')}}" onclick="" class="mb-4">
+<a href="{{url_for('backup_y_restore')}}" onclick="" class="mb-4" title="Backup y restore">
   <i class='bx bxs-data' style="color: #fff; font-size: 24px;"></i>
 </a>
+
 <!-- Agrega más íconos aquí -->
 </div>
 
@@ -216,9 +228,11 @@ z-index: 1030;
 
 
           <li class="nav-item" style="margin-bottom: 20px;">
-            <a class="h1 fw-bold mb-0 nav-link " href="{{url_for('dashboard')}}" style="color: white; " >Control+P
+            <div style="display: flex; align-items: center;">
+            <img src="/static/assets/img/logo2.png" alt="Logo" style="width: 35px;">
+            <a class="h3 fw-bold mb-0 nav-link " href="{{url_for('dashboard')}}" style="color: white; " >Control+P
             </a>
-            
+            </div>
           </li>
 
 
@@ -321,7 +335,6 @@ z-index: 1030;
           </a>
           <div class="dropdown-menu dropdown-menu-end mt-2 " style="margin-top: 10px; position: absolute; z-index: 1050;  " aria-labelledby="dropdownMenuButton">
             <!---<a class="dropdown-item" href="{{url_for('perfil')}}">Perfil</a>--->
-            <a class="dropdown-item" href="{{url_for('administrarUsuarios')}}">Administrar usuarios</a>
             <a class="dropdown-item" href="{{url_for('logout')}}">Cerrar sesión</a>
          </div>
       </div>
@@ -388,6 +401,28 @@ window.onclick = function(event) {
 }
 
 </script>
+<script>
+  const limpiarBackdrops = () => {
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    if (backdrops.length > 1) {
+      backdrops.forEach((b, i) => {
+        if (i > 0) b.remove();
+      });
+    }
+  };
+
+  document.addEventListener('shown.bs.modal', limpiarBackdrops);
+
+  document.addEventListener('hidden.bs.modal', () => {
+    // Limpieza total al cerrar modal
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  });
+</script>
+
 </body>
 
 </html>

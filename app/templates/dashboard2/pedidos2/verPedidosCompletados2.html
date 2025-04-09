@@ -1,6 +1,6 @@
 <title>Pedidos registrados</title>
 
-{% extends "dashboard/basemenu.html" %}
+{% extends "dashboard2/basemenu2.html" %}
 
 {% block title %}Pedidos Registrados{% endblock %}
 
@@ -22,47 +22,52 @@
           <a class=" h4 nav-link active" href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
         
       </ul>  
-      <a type="button"  href="{{url_for('generar_reporte_completo_pedidos')}}" class="btn btn-light">Exportar PDF</a>
+      <a type="button" id="btn-generar-reporte" href="{{url_for('generar_reporte_completo')}}" class="btn btn-light">Exportar PDF</a>
   </div>
 
 <div class="filtros-container">     
   
   <div></div>
-<div class="filtro-fecha" style="justify-content: right;">
-    <label for="orden-fecha">Ordenar por fecha:</label>
+  <div class="filtro-fecha">
+    <label for="orden-fecha">Ordenar por:</label>
     <select id="orden-fecha" class="filtro-select">
-        <option value="reciente">Más Reciente</option>
-        <option value="antiguo">Más Antiguo</option>
+      <option value="">-</option>
+        <option value="hoy">Hoy</option>
+        <option value="semana">Última semana</option>
+        <option value="mes">Último mes</option>
+        <option value="reciente">Más reciente</option>
+        <option value="antiguo">Más antiguo</option>
     </select>
-</div>
+</div> 
 </div> 
   <div id="pedidos-container">
 
     {% for d in dataPedidos4 %}
-    <div class="pedido-item"data-fecha="{{ d.fecha_pedido }}"style="
+    <div class="pedido-item"data-fecha="{{ d.fecha_fin_trabajo }}"style="
       
         border-left: 5px solid #75dd71;
       
     ">
   
         <div class="pedido-info">
-          <div><strong>Cliente:</strong> {{ d.nombre_cliente }} {{ d.apellido_cliente }}  
+          <div><strong>Cliente:</strong> {{ d.nombre_cliente }} 
           <div class="text-muted" style="font-size: 12px;"><strong>Fecha del trabajo:</strong> {{d.fecha_inicio_trabajo}} - {{d.fecha_fin_trabajo}}</div>
           <div><strong>Estado de pedido:</strong> {{ d.estado_pedido }}</div>
   
             <div class="extra-info">
-                          <strong>Técnico encargado:</strong> {{ d.nombre_tecnico }} {{ d.apellido_tecnico }}</div>
+                          <strong>Técnico encargado:</strong> {{ d.nombres_tecnicos }}</div>
                           <div><strong></strong>   
                 <strong>Fecha:</strong> {{ d.fecha_pedido }}</div>
                 
             </di>
         </div>
     
-   
+  
         <div class="botones">
           
           <button class="btn btn-sm"  id="btn-edit{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modalCompletado{{d.codigo_pedido}}
           ">Ver detalles</button>
+          <button class="eliminar btn  btn-sm" id="btn-eliminar{{d.codigo_pedido}}" data-bs-toggle="modal" data-bs-target="#modaleliminar{{d.codigo_pedido}}" >Eliminar</button>
           
         </div>
    
@@ -85,7 +90,7 @@
                             <div class="modal-dialog">
                               <div class="modal-content">
                                 <div class="modal-header">
-                                  <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h1>
+                                  <h3 class="modal-title fs-5" id="exampleModalLabel">Detalles del pedido</h3>
                                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
@@ -103,7 +108,7 @@
                                           <input readonly type="text" class="form-control mb-3" name="fecha_pedido" value="{{d.fecha_pedido}}">
 
                                         <label for="servicio" class="form-label mt-1">Servicios prestados</label>
-                                        <textarea readonly name="servicio" class="form-control" id="servicio" required>{{d.nombres_servicios_correctivos}}, {{d.nombres_servicios_preventivos}}</textarea>                                          
+                                        <textarea readonly name="servicio" class="form-control" id="servicio" required>{{d.nombres_servicios}}</textarea>                                          
                                         <label for="fecha_inicio_trabajo" >Fecha de inicio del trabajo</label>
                                         <input class="form-control" value="{{d.fecha_inicio_trabajo}}" required type="text" id="fecha_inicio_trabajo" name="fecha_inicio_trabajo" class="fecha_inicio_trabajo" required>
                                         <label for="fecha_fin_trabajo" >Fecha de finalización del trabajo</label>
@@ -159,7 +164,7 @@
                     <div class="modal-dialog">
                       <div class="modal-content">
                         <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h1>
+                          <h3 class="modal-title fs-5" id="exampleModalLabel">{{d.nombre}} {{d.apellido}}</h3>
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -193,7 +198,74 @@
       enableTime: false,     // Deshabilitar hora (solo fecha)
       locale: "es"           // Español
   });
-</script>
+  
+
+  let filtroFechaActual = "";
+  let filtroOrdenActual = "";
+
+  document.getElementById("orden-fecha").addEventListener("change", function () {
+    const valor = this.value;
+
+    if (["hoy", "semana", "mes", ""].includes(valor)) {
+      filtroFechaActual = valor;
+      filtroOrdenActual = "";
+    } else if (["reciente", "antiguo"].includes(valor)) {
+      filtroOrdenActual = valor;
+      filtroFechaActual = "";
+    }
+
+    aplicarFiltros();
+  });
+
+  function aplicarFiltros() {
+    const hoy = new Date();
+    const pedidos = document.querySelectorAll('.pedido-item');
+
+    pedidos.forEach(pedido => {
+      const dataFecha = pedido.getAttribute("data-fecha");
+      const [anio, mes, dia] = dataFecha.split("-").map(Number);
+      const fechaPedido = new Date(anio, mes - 1, dia);
+
+      let mostrar = true;
+
+      if (filtroFechaActual === "hoy") {
+        mostrar = hoy.getFullYear() === anio &&
+                  (hoy.getMonth() + 1) === mes &&
+                  hoy.getDate() === dia;
+      } else if (filtroFechaActual === "semana") {
+        const haceUnaSemana = new Date();
+        haceUnaSemana.setDate(hoy.getDate() - 7);
+        mostrar = fechaPedido >= haceUnaSemana;
+      } else if (filtroFechaActual === "mes") {
+        const haceUnMes = new Date();
+        haceUnMes.setMonth(hoy.getMonth() - 1);
+        mostrar = fechaPedido >= haceUnMes;
+      }
+
+      pedido.style.display = mostrar ? "flex" : "none";
+    });
+
+    if (filtroOrdenActual === "reciente" || filtroOrdenActual === "antiguo") {
+      const contenedor = document.getElementById("pedidos-container");
+      const pedidosArray = Array.from(document.querySelectorAll('.pedido-item'))
+        .filter(p => p.style.display === "flex");
+
+      pedidosArray.sort((a, b) => {
+        const fechaA = new Date(a.getAttribute("data-fecha"));
+        const fechaB = new Date(b.getAttribute("data-fecha"));
+        return filtroOrdenActual === "reciente" ? fechaB - fechaA : fechaA - fechaB;
+      });
+
+      pedidosArray.forEach(pedido => contenedor.appendChild(pedido));
+    }
+  }
+
+  document.getElementById("btn-generar-reporte").addEventListener("click", function (e) {
+    e.preventDefault();
+    const url = `/generar-reporte-completo?fecha=${filtroFechaActual}&orden=${filtroOrdenActual}`;
+    window.open(url, '_blank');
+  });
+  
 
 </script>
 

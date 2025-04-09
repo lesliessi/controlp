@@ -8,6 +8,8 @@ import json
 from conexionBD import *  #Importando conexion BD
 from funciones import *
 from reportes import *
+from backup import *
+from restore import *
 
 from routes import * #Vistas
 
@@ -20,6 +22,8 @@ import re
 from werkzeug.security import generate_password_hash, check_password_hash
 import http.client
 
+#from scheduler import iniciar_scheduler
+#iniciar_scheduler(app)
 
 auth = Blueprint('auth', __name__)
 
@@ -432,7 +436,7 @@ def registrarEmpleado():
          #verificar_inactividad()
         msg = ''
         conexion_MySQLdb = connectionBD() 
-
+    
         if 'conectado' in session:
             if request.method == 'POST':
                     cedula                       = request.form['cedula']
@@ -443,31 +447,46 @@ def registrarEmpleado():
                     tipo                        = request.form['tipo']
                     #current_time = datetime.datetime.now()
 
-                    conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
-                    val= (cedula, nombre, apellido)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL, val)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL2= "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)" 
-                    val2= (prefijo_telefonico, numero, cedula)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL2, val2)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL1= "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
-                    val1= (cedula, tipo)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL1, val1)
-                    conexion_MySQLdb.commit()
-                    flash ('Empleado registrado correctamente.')
-                    cursor.close()
-                    return redirect(url_for('verRegistrosEmpleados'))
-            return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+                    try:
+                        conexion_MySQLdb = connectionBD()
+                        cursor = conexion_MySQLdb.cursor(dictionary=True)
 
-    
-        return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+                        # Insertar en la tabla persona
+                        sql_persona = "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)"
+                        val_persona = (cedula, nombre, apellido)
+                        cursor.execute(sql_persona, val_persona)
+                        conexion_MySQLdb.commit()
+
+                        # Insertar en la tabla telefono
+                        sql_telefono = "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
+                        val_telefono = (prefijo_telefonico, numero, cedula)
+                        cursor.execute(sql_telefono, val_telefono)
+                        conexion_MySQLdb.commit()
+
+                        # Insertar en la tabla empleado
+                        sql_empleado = "INSERT INTO empleado (cedula, tipo) VALUES (%s, %s)"
+                        val_empleado = (cedula, tipo)
+                        cursor.execute(sql_empleado, val_empleado)
+                        conexion_MySQLdb.commit()
+
+                        flash('Empleado registrado correctamente.')
+                        return redirect(url_for('verRegistrosEmpleados'))
+
+                    except mysql.connector.Error as err:
+                        print(f"Error: {err}")
+                        flash(f'Error al registrar el empleado: {err}', 'error') #Muestra el error al usuario.
+                        return redirect(url_for('registrarEmpleado')) #Redirige a la misma pagina para que vuelva a intentar.
+
+                    finally:
+                        if conexion_MySQLdb and conexion_MySQLdb.is_connected():
+                            cursor.close()
+                            conexion_MySQLdb.close()
+
+        if session['rol']==1:
+            return render_template('dashboard/empleados/registroEmpleado.html', msjAlert = msg, typeAlert=0)
+        else:
+            return render_template('dashboard2/empleados2/registroEmpleado2.html', msjAlert = msg, typeAlert=0)
+
 
 
 @app.route('/registrar-cliente', methods=['GET', 'POST'])
@@ -494,37 +513,52 @@ def registrarCliente():
 
                     #current_time = datetime.datetime.now()
 
-                    conexion_MySQLdb = connectionBD()
-                    SQL= "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)" 
-                    val= (cedula, nombre, apellido)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL, val)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL4= "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)" 
-                    val4= (prefijo_telefonico, numero, cedula)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL4, val4)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL1= "INSERT INTO cliente (cedula) VALUES (%s)"
-                    val1= [(cedula)]
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL1, val1)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    SQL2= "INSERT INTO direccion (calle, sector, numero_casa, cedula, codigo_ciudad) VALUES (%s, %s, %s, %s, %s)"
-                    val2= (calle, sector, numero_casa, cedula, ciudad)
-                    cursor = conexion_MySQLdb.cursor(dictionary=True)
-                    cursor.execute (SQL2, val2)
-                    conexion_MySQLdb.commit()
-                    cursor.close()
-                    flash ('Cliente registrado correctamente.')
-                    return redirect(url_for('verRegistrosClientes'))
+                    try:
+                        conexion_MySQLdb = connectionBD()
+                        cursor = conexion_MySQLdb.cursor(dictionary=True)
 
-            return render_template('dashboard/clientes/registroCliente.html', msjAlert = msg, typeAlert=0, estados=listaEstados())
+                        # Insertar en la tabla persona
+                        sql_persona = "INSERT INTO persona (cedula, nombre, apellido) VALUES (%s, %s, %s)"
+                        val_persona = (cedula, nombre, apellido)
+                        cursor.execute(sql_persona, val_persona)
+                        conexion_MySQLdb.commit()
 
-        return render_template('dashboard/clientes/registroCliente.html', estados=listaEstados())
+                        # Insertar en la tabla telefono
+                        sql_telefono = "INSERT INTO telefono (prefijo_telefonico, numero, cedula) VALUES (%s, %s, %s)"
+                        val_telefono = (prefijo_telefonico, numero, cedula)
+                        cursor.execute(sql_telefono, val_telefono)
+                        conexion_MySQLdb.commit()
+
+                        # Insertar en la tabla cliente
+                        sql_cliente = "INSERT INTO cliente (cedula) VALUES (%s)"
+                        val_cliente = (cedula,) #Importante la coma para que sea una tupla.
+                        cursor.execute(sql_cliente, val_cliente)
+                        conexion_MySQLdb.commit()
+
+                        # Insertar en la tabla direccion
+                        sql_direccion = "INSERT INTO direccion (calle, sector, numero_casa, cedula, codigo_ciudad) VALUES (%s, %s, %s, %s, %s)"
+                        val_direccion = (calle, sector, numero_casa, cedula, ciudad)
+                        cursor.execute(sql_direccion, val_direccion)
+                        conexion_MySQLdb.commit()
+
+                        flash('Cliente registrado correctamente.')
+                        return redirect(url_for('verRegistrosClientes'))
+
+                    except mysql.connector.Error as err:
+                        print(f"Error: {err}")
+                        flash(f'Error al registrar el cliente: {err}', 'error')
+                        return redirect(url_for('registrarCliente'))
+
+                    finally:
+                        if conexion_MySQLdb and conexion_MySQLdb.is_connected():
+                            cursor.close()
+                            conexion_MySQLdb.close()
+
+        if session['rol']==1:
+            return render_template('dashboard/clientes/registroCliente.html', estados=listaEstados())
+        else:
+            return render_template('dashboard2/clientes2/registroCliente2.html', estados=listaEstados())
+
 
 @app.route('/get_ciudades', methods=['GET'])
 def get_ciudades():
@@ -637,11 +671,18 @@ def nuevoPedido():
                 flash('Ocurrió un error al registrar el pedido.')
                 return redirect(url_for('verRegistrosPedidos'))
 
+    if session['rol']==1:
+
     #  Cargar datos en caso de GET
-    return render_template('dashboard/pedidos/nuevoPedido.html', 
-                           dataClientes=listaClientes(), 
-                           dataTecnicos=listaTecnicos(), 
-                           dataServicios=listaServicios())
+        return render_template('dashboard/pedidos/nuevoPedido.html', 
+                            dataClientes=listaClientes(), 
+                            dataTecnicos=listaTecnicos(), 
+                            dataServicios=listaServicios())
+    else:
+        return render_template('dashboard2/pedidos2/nuevoPedido2.html',
+                            dataClientes=listaClientes(),
+                            dataTecnicos=listaTecnicos(),
+                            dataServicios=listaServicios())
 
 @app.route('/registrar-servicio', methods=['GET', 'POST'])
 def registrarServicio():
@@ -665,8 +706,12 @@ def registrarServicio():
                     cursor.close()
                     flash ('Servicio registrado correctamente.')
                     return redirect(url_for('verRegistrosServicios'))
+            
+        if session['rol']==1:
+            return render_template('dashboard/servicios/servicios.html', msjAlert = msg, typeAlert=0)
+        else:
+            return render_template('dashboard2/servicios2/servicios2.html', msjAlert = msg, typeAlert=0)
 
-        return render_template('dashboard/servicios/servicios.html')     
 
 @app.route('/delete/<string:cedula>')
 def delete(cedula):
@@ -1200,6 +1245,34 @@ def actualizarPerfil(codigo_usuario):
                 return redirect(url_for('perfil'))
 
         return redirect(url_for('perfil'))
+    
+@app.route('/backup-y-restore')
+def backup_y_restore():
+    return render_template ('/dashboard/backuprestore.html')
+
+@app.route("/respaldo", methods=["GET"])
+def ejecutar_respaldo():
+    return respaldo_manual()
+
+@app.route('/restaurar', methods=["POST"])
+def restaurar_bd():
+    archivo = request.files.get('archivo_sql')
+
+    if archivo and archivo.filename.endswith('.sql'):
+        # Guardar archivo temporalmente
+        carpeta = "archivos_restore"
+        os.makedirs(carpeta, exist_ok=True)
+        ruta_archivo = os.path.join(carpeta, archivo.filename)
+        archivo.save(ruta_archivo)
+
+        exito, mensaje = importar_sql(ruta_archivo)
+        os.remove(ruta_archivo)
+
+        flash(("✅ " if exito else "❌ ") + mensaje)
+    else:
+        flash("❌ Debes subir un archivo .sql válido")
+
+    return redirect(url_for("backup_y_restore"))
 
 '''def verificar_inactividad():
     if 'ultimo_acceso' in session:

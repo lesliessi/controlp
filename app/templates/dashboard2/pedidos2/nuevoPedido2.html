@@ -1,6 +1,6 @@
 <title>Nuevo Pedido</title>
 
-{% extends "dashboard/basemenu.html" %}
+{% extends "dashboard2/basemenu2.html" %}
 
 {% block title %}Nuevo pedido{% endblock %}
 
@@ -15,11 +15,11 @@
 
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Nuevo pedido</h1>
+        <h3 class="h2">Nuevo pedido</h3>
       </div>
 
         <!---Formulario-->
-        <form name="form-nuevoPedido" id="form-nuevoPedido" action="{{ url_for('nuevoPedido') }}" method="POST" class="mt-5" autocomplete="off">
+        <form name="form-nuevoPedido" id="form-nuevoPedido" action="{{ url_for('nuevoPedido') }}" method="POST" class="mt-5" autocomplete="off" enctype="multipart/form-data">
 <div style="align-items: center; justify-content: center;">
           <div class="form-group">
    
@@ -39,15 +39,24 @@
 
 
 
-          <div >
-              <label for="tecnico" >Técnico</label>
-              <select name="tecnico"  class="form-control col-md-4"required >
-                <option value="0" selected="selected">--- Seleccione ---</option>
-                {% for c in dataTecnicos %}
-                <option value="{{ c.cedula}}">{{c.nombre}} {{c.apellido}}</option>
-                {% endfor %}
+            <div>
+              <label for="tecnicos">Técnico</label>
+              <select id="tecnicos" name="tecnicoSeleccionado[]" class="form-control col-md-4" multiple>
+                  {% for c in dataTecnicos %}
+                  <option value="{{ c.cedula }}">{{ c.nombre }} {{ c.apellido }}</option>
+                  {% endfor %}
               </select>
           </div>
+          
+          <!-- Contenedor para mostrar técnicos seleccionados -->
+          <div id="seleccionados" class="mt-2">
+              <strong>Técnicos asignados:</strong>
+              <ul id="listaSeleccionados"></ul>
+          </div>
+          
+          
+          
+          
 
 
     
@@ -67,7 +76,9 @@
 
 
 
-
+      <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+      <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+      
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"> </script>
 
@@ -83,6 +94,30 @@
 </script>
 
 <script>
+  // Inicializar Select2 en el select
+$(document).ready(function() {
+    $('#tecnicos').select2({
+        placeholder: "--- Seleccione Técnicos ---",
+        allowClear: true
+    });
+
+    // Escuchar cambios en la selección
+    $('#tecnicos').on('change', function() {
+        let seleccionados = $(this).val() || []; // Obtener valores seleccionados
+
+        // Limpiar y actualizar la lista de seleccionados
+        let lista = $('#listaSeleccionados');
+        lista.empty();
+        $(this).find('option:selected').each(function() {
+            lista.append('<li>' + $(this).text() + '</li>');
+        });
+
+        // Actualizar el input oculto con las cédulas seleccionadas
+        $('#tecnicoSeleccionado').val(seleccionados.join(','));
+    });
+});
+
+
   document.getElementById('cliente').addEventListener('change', function() {
     console.log("Cliente seleccionado:", this.value);
 

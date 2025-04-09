@@ -124,9 +124,7 @@ def historialSesiones():
     return render_template ('/dashboard/adminUsuarios/historialSesiones.html', data = myresult)
 
 
-@app.route('/backup-y-restore')
-def backup_y_restore():
-    return render_template ('/dashboard/backuprestore.html')
+
 
 @app.route('/ver-registros-Empleados') 
 def verRegistrosEmpleados():
