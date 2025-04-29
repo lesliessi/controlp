@@ -7,22 +7,24 @@
 
 
 {% block sidebar %}{% endblock %}
-
+ 
 
 
 {% block content %} 
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h3 class="h2">Servicios registrados</h3>
-        <button type="button" href="#" class="btn btn-light">Exportar PDF</button>
-      
+        <h3 class="h3">Servicios registrados</h3>
+        <div class="position-relative" style="width: 250px;">
+          <input type="text" id="buscarServicio" class="form-control" style="border-radius: 25px; padding-right: 40px;" placeholder="Buscar servicio...">
+          <i class="bx bx-search-alt-2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: gray; font-size: 20px;"></i>
+        </div>      
   </div>
  
         <!---Tabla-->
         <div class=container>
 
-          <table class="table table bordered">
-              <thead>
+          <table class="table " id="tablaServicios">
+            <thead>
                   <th scope="col">Código de servicio</th>
                   <th scope="col">Tipo de servicio</th>
                   <th scope="col">Descripción</th> 
@@ -49,7 +51,20 @@
         
       
       
-      
+            <script>
+              document.addEventListener("DOMContentLoaded", function() {
+                  const inputBusqueda = document.getElementById("buscarServicio");
+                  inputBusqueda.addEventListener("keyup", function() {
+                      const filtro = this.value.toLowerCase();
+                      const filas = document.querySelectorAll("#tablaServicios tbody tr");
+              
+                      filas.forEach(fila => {
+                          const textoFila = fila.textContent.toLowerCase();
+                          fila.style.display = textoFila.includes(filtro) ? "" : "none";
+                      });
+                  });
+              });
+              </script>    
       
       
       

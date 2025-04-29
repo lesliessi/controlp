@@ -317,10 +317,12 @@ def registerUser3():
 
     if request.method == 'POST':
         pregunta_seguridad = request.form['pregunta_seguridad']
+        respuesta_seguridad = request.form['respuesta_seguridad']
         contraseña = request.form['contraseña']
         repetir_contraseña = request.form['repetir_contraseña']
 
         session['pregunta_seguridad'] = pregunta_seguridad
+        session['respuesta_seguridad'] = respuesta_seguridad
         session['contraseña'] = contraseña
         session['repetir_contraseña'] = repetir_contraseña
 
@@ -335,7 +337,7 @@ def registerUser3():
         if contraseña != repetir_contraseña:
             flash('Las contraseñas no coinciden.')
             return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1,
-                                   pregunta_seguridad=pregunta_seguridad,
+                                   pregunta_seguridad=pregunta_seguridad, respuesta_seguridad=respuesta_seguridad,
                                    contraseña=contraseña,
                                    repetir_contraseña=repetir_contraseña)
 
@@ -354,7 +356,7 @@ def registerUser3():
         if nivel != "muy alto":
             flash(f'La contraseña tiene un nivel de seguridad: "{nivel.upper()}". Mejora la contraseña para continuar.')
             return render_template('login/registerUser3.html', msjAlert=msg, typeAlert=1,
-                                   pregunta_seguridad=pregunta_seguridad,
+                                   pregunta_seguridad=pregunta_seguridad, respuesta_seguridad=respuesta_seguridad,
                                    contraseña=contraseña,
                                    repetir_contraseña=repetir_contraseña)
 
@@ -380,9 +382,9 @@ def registerUser3():
 
             # Insert usuario con contraseña y hash SHA256
             SQL2 = """INSERT INTO usuario 
-                      (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol, contraseña_sha256) 
-                      VALUES (%s, %s, %s, %s, %s, %s)"""
-            val2 = (cedula, usuario, hashed, pregunta_seguridad, '2', hash_comparacion)
+                      (cedula, usuario, contraseña, pregunta_seguridad, codigo_rol, contraseña_sha256, respuesta_seguridad) 
+                      VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            val2 = (cedula, usuario, hashed, pregunta_seguridad, '2', hash_comparacion, respuesta_seguridad)
             cursor = conexion_MySQLdb.cursor(dictionary=True)
             cursor.execute(SQL2, val2)
             conexion_MySQLdb.commit()
@@ -1187,16 +1189,43 @@ def cambiarContraseña(usuario):
         repetir_contraseña             = request.form.get('repetir_contraseña')
 
         if contraseña != repetir_contraseña:
-            flash ('Las contrseñas no coinciden')
+            flash ('Las contraseñas no coinciden')
             return render_template ('login/cambiarContraseña.html', usuario=usuario)
         else:
-            hashed = hash_contraseña(contraseña)
-
-            cursor.execute("UPDATE usuario SET contraseña = %s WHERE codigo_usuario = %s", (hashed, codigo_usuario))            
-            conexion_MySQLdb.commit()
+             # Obtener hashes SHA256 de la base de datos
+            cursor = conexion_MySQLdb.cursor(dictionary=True)
+            cursor.execute('SELECT contraseña_sha256 FROM usuario')
+            hashes_existentes = [fila['contraseña_sha256'] for fila in cursor.fetchall()]
             cursor.close()
-            flash ('Contraseña actualizada exitosamente')
-            return render_template ('login/login.html')
+
+            nivel = nivel_seguridad(contraseña, hashes_existentes)
+
+            if nivel != "muy alto":
+                flash(f'La contraseña tiene un nivel de seguridad: "{nivel.upper()}". Mejora la contraseña para continuar.')
+                return render_template('login/cambiarContraseña.html', usuario=usuario,
+                                    contraseña=contraseña,
+                                    repetir_contraseña=repetir_contraseña)
+
+            hashed = hash_contraseña(contraseña)
+            hash_comparacion = hash_para_comparar(contraseña)
+
+            try:
+
+                cursor = conexion_MySQLdb.cursor(dictionary=True)  # Te faltaba volver a abrir cursor aquí
+                cursor.execute("UPDATE usuario SET contraseña = %s, contraseña_sha256 = %s WHERE codigo_usuario = %s",
+                            (hashed, hash_comparacion, codigo_usuario))
+                conexion_MySQLdb.commit()
+                cursor.close()
+                flash('Contraseña actualizada exitosamente')
+                return render_template('login/login.html')
+
+            except Exception as e:
+                conexion_MySQLdb.rollback()
+                flash(f'Error al cambiar contraseña: {str(e)}')
+                return render_template('login/cambiarContraseña.html',
+                                        typeAlert=1,
+                                        contraseña=contraseña,
+                                        repetir_contraseña=repetir_contraseña)
     # ...
     return render_template('login/cambiarContraseña.html', usuario=usuario)
 

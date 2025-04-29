@@ -17,13 +17,20 @@
     <main class=" px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <ul class=" nav nav-tabs">
-          <a class="h4 nav-link "style="color: black;" href="{{url_for('verRegistrosPedidos')}}">Pedidos en curso</a>
+          <a class="nav-link  " style="color: rgb(66, 64, 64);" href="{{url_for('verRegistrosPedidos')}}">Pedidos en curso</a>
        
-          <a class=" h4 nav-link active" href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
+          <a class=" h4 nav-link active " style="color: black;" href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
         
-      </ul>  
-      <a type="button" id="btn-generar-reporte" href="{{url_for('generar_reporte_completo')}}" class="btn btn-light">Exportar PDF</a>
-  </div>
+      </ul>
+      
+      <div class="d-flex align-items-center mb-3 gap-2">
+        <div class="position-relative" style="width: 250px;">
+          <input type="text" id="buscarPedido" class="form-control" style="border-radius: 25px; padding-right: 40px;" placeholder="Buscar pedidos...">
+          <i class="bx bx-search-alt-2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: gray; font-size: 20px;"></i>
+        </div>
+      <a type="button" id="btn-generar-reporte" href="{{url_for('generar_reporte_completo2')}}" class="btn btn-light">Exportar PDF</a>
+      </div>
+    </div>
 
 <div class="filtros-container">     
   
@@ -43,7 +50,7 @@
   <div id="pedidos-container">
 
     {% for d in dataPedidos4 %}
-    <div class="pedido-item"data-fecha="{{ d.fecha_fin_trabajo }}"style="
+    <div class="pedido-item" data-fecha="{{ d.fecha_fin_trabajo }}"style="
       
         border-left: 5px solid #75dd71;
       
@@ -219,19 +226,20 @@
 
   function aplicarFiltros() {
     const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);  // <--- Resetear horas para comparar solo la fecha
     const pedidos = document.querySelectorAll('.pedido-item');
 
     pedidos.forEach(pedido => {
       const dataFecha = pedido.getAttribute("data-fecha");
       const [anio, mes, dia] = dataFecha.split("-").map(Number);
       const fechaPedido = new Date(anio, mes - 1, dia);
+      fechaPedido.setHours(0, 0, 0, 0); // También resetear horas
+
 
       let mostrar = true;
 
       if (filtroFechaActual === "hoy") {
-        mostrar = hoy.getFullYear() === anio &&
-                  (hoy.getMonth() + 1) === mes &&
-                  hoy.getDate() === dia;
+        mostrar = hoy.getTime() === fechaPedido.getTime();
       } else if (filtroFechaActual === "semana") {
         const haceUnaSemana = new Date();
         haceUnaSemana.setDate(hoy.getDate() - 7);
@@ -262,12 +270,26 @@
 
   document.getElementById("btn-generar-reporte").addEventListener("click", function (e) {
     e.preventDefault();
-    const url = `/generar-reporte-completo?fecha=${filtroFechaActual}&orden=${filtroOrdenActual}`;
+    const url = `/generar-reporte-completo2?fecha=${filtroFechaActual}&orden=${filtroOrdenActual}`;
     window.open(url, '_blank');
   });
   
 
 </script>
 
-
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputBusqueda = document.getElementById("buscarPedido");
+      const pedidos = document.querySelectorAll("#pedidos-container .pedido-item");
+  
+      inputBusqueda.addEventListener("keyup", function() {
+          const filtro = this.value.toLowerCase();
+  
+          pedidos.forEach(pedido => {
+              const textoPedido = pedido.textContent.toLowerCase();
+              pedido.style.display = textoPedido.includes(filtro) ? "block" : "none";
+          });
+      });
+  });
+  </script>
 {% endblock %}

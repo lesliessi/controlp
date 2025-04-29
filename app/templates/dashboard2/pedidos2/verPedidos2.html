@@ -18,12 +18,19 @@
     <main class=" px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <ul class=" nav nav-tabs">
-          <a class="h4 nav-link active">Pedidos en curso</a>
+          <a class="h4 nav-link active" style="color: black">Pedidos en curso</a>
        
-          <a class=" h4 nav-link " style="color: black;"href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
+          <a class="  nav-link " style="color: rgb(66, 64, 64);"href="{{url_for('verRegistrosPedidosCompletados')}}"> Completados</a>
         
       </ul>  
+     <div class="d-flex align-items-center mb-3 gap-2">
+
+      <div class="position-relative" style="width: 250px;">
+        <input type="text" id="buscarPedido" class="form-control" style="border-radius: 25px; padding-right: 40px;" placeholder="Buscar pedidos...">
+        <i class="bx bx-search-alt-2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: gray; font-size: 20px;"></i>
+      </div>
       <a type="button" id="btn-exportar-pdf"  href="{{url_for('generar_reporte_completo_pedidos')}}" class="btn btn-light">Exportar PDF</a>
+     </div>
     </div>
 
 <div class="filtros-container">     
@@ -699,11 +706,24 @@
           }
 
           function actualizarReferencia() {
-              referenciaContainer.style.display = (metodoPago.value === "pago_movil" || metodoPago.value === "transferencia") ? "block" : "none";
-          }
+            if (metodoPago && referenciaContainer && tipoMoneda) {
+        if (
+            metodoPago.value === "pago_movil" ||
+            metodoPago.value === "transferencia" ||
+            (tipoMoneda.value === "divisas" && metodoPago.value === "efectivo")
+        ) {
+            referenciaContainer.style.display = "block";
+        } else {
+            referenciaContainer.style.display = "none";
+        }
+    }
+}
 
-          checkbox.addEventListener("change", actualizarCampos);
-          tipoMoneda.addEventListener("change", actualizarMetodosPago);
+checkbox.addEventListener("change", actualizarCampos);
+          tipoMoneda.addEventListener("change", () => {
+              actualizarMetodosPago();
+              actualizarReferencia();
+          });
           metodoPago.addEventListener("change", actualizarReferencia);
 
           actualizarCampos();
@@ -736,7 +756,21 @@
     });
   });
 </script>
-                                
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputBusqueda = document.getElementById("buscarPedido");
+      const pedidos = document.querySelectorAll("#pedidos-container .pedido-item");
+  
+      inputBusqueda.addEventListener("keyup", function() {
+          const filtro = this.value.toLowerCase();
+  
+          pedidos.forEach(pedido => {
+              const textoPedido = pedido.textContent.toLowerCase();
+              pedido.style.display = textoPedido.includes(filtro) ? "block" : "none";
+          });
+      });
+  });
+  </script>                              
 
 
 {% endfor %}
