@@ -77,7 +77,8 @@
                           </div>
                         
                               <div data-mdb-input-init class="form-outline mb-4">
-                                <input placeholder="Ingrese su respuesta" class="form-control form-control-lg" type="text"id="respuesta_seguridad" name="respuesta_seguridad" pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ]+"  oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')" required>
+                                <input placeholder="Ingrese su respuesta" class="form-control form-control-lg" type="text"id="respuesta_seguridad" name="respuesta_seguridad" pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+" 
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '')"  required>
                                 <div class="invalid-feedback">
                                 </div>
                               </div>

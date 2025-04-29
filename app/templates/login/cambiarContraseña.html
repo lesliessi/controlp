@@ -64,36 +64,109 @@
           
             
             
-                              <div data-mdb-input-init class="form-outline"style="margin-bottom: 25px">
-                                <div style="position: relative; display: flex; align-items: center;">
-                                  <input  required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña"
-                                  minlength="8" 
-                                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
-                                  title="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&)." required/>
-                                  <i class='bx bx-show-alt' style="color: #fff;"></i>
-                                </div>
-                                  <small id="passwordHelp" class="text-muted"></small>
-                                  <small id="passwordError" style="color: red; display: none;">La contraseña no cumple con los requisitos.</small>
-                                  <div class="invalid-feedback">
-                                  </div>
+                            <div data-mdb-input-init class="form-outline"style="margin-bottom: 25px">
+                              <div style="position: relative; display: flex; align-items: center;">
+                                <input required type="password" id="contraseña" class="form-control form-control-lg" name="contraseña" placeholder="Ingrese su contraseña"
+                                minlength="8" 
+                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 
+                                title="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&)." required/>
+                                <i class='bx bx-show-alt' style="color: #fff;"></i>
+                                
+                                
                               </div>
-                              <div data-mdb-input-init class="form-outline" style="margin-bottom: 10px;">
-                                <div style="position: relative; display: flex; align-items: center;">
-                                  <input required type="password" id="repetir_contraseña" class="form-control form-control-lg" name="repetir_contraseña" placeholder="Repita su contraseña" 
-                                  minlength="8" 
-                                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" required/>
-                                  <i class='bx bx-show-alt' style="color: #fff;"></i>
+                                <small id="passwordHelp" class="text-muted"></small>
+                                <small id="passwordError" style="color: red; display: none;">La contraseña no cumple con los requisitos.</small>
+                                <div class="invalid-feedback">
                                 </div>
-                                  <div class="invalid-feedback">
-                                    Complete el campo
-                                  </div>
+                            </div>
+                          <div data-mdb-input-init class="form-outline">
+                              <div style="position: relative; display: flex; align-items: center;">
+                                <input required type="password" id="repetir_contraseña" class="form-control form-control-lg" name="repetir_contraseña" placeholder="Repita su contraseña" 
+                                minlength="8" 
+                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" required/>
+                                <i class='bx bx-show-alt' style="color: #fff;"></i>
                               </div>
-                          <small for="placeholder" style="font-style:italic; font: size 7px; color: gray"  >La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&).</small>
+                                <div class="invalid-feedback">
+                                  Complete el campo
+                                </div>
+                            </div>
+                          </div>
+                          <div id="password-strength-bar" class="progress" style="height: 5px; background-color: #e0e0e0; border-radius: 5px; margin-bottom: 10px; width: 385px; margin-left: 55px; margin-top: -35px;">
+                            <div id="strength-fill" style="height: 100%; width: 0%; border-radius: 5px; margin-bottom: 25px;"></div>
+                          </div>
+                          <div><small id="strength-text" class="text-muted" style="font-weight: bold;"></small>
+                          </div>
+                        <small for="placeholder" style="font-style:italic; font: size 7px; color: gray; margin-left: 55px; margin-right: 55px;"  >La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un signo especial (@$!%*?&).</small>
 
                             
-                          <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px;"class="w-100 btn btn-lg btn btn-light btn-lg btn-block" type="submit">Enviar</button>
+                          <button style="margin-top: 10px; margin-bottom: 5px; border-radius: 25px; width: 385px; margin-left: 55px;"class=" btn btn-lg btn btn-light btn-lg btn-block" type="submit">Enviar</button>
 
             
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                          
                               <p class="mb-5 pb-lg-2" style="color: #393f81;"> <a href="{{url_for('inicio')}}"
                                   style="color: #393f81;">Volver</a></p>
                             </form>
@@ -104,111 +177,190 @@
                   </div>
             </section>
 
+
   <script>
-const contraseña = document.getElementById("contraseña"),
-      repetir_contraseña = document.getElementById("repetir_contraseña"),
-      iconContraseña = document.querySelectorAll(".bx")[0],  
-      iconRepetirContraseña = document.querySelectorAll(".bx")[1];  
-
-iconContraseña.addEventListener("click", e => {
-    if (contraseña.type === "password") {
-        contraseña.type = "text";
-        iconContraseña.classList.remove('bx-show-alt');
-        iconContraseña.classList.add('bx-hide');
-    } else {
-        contraseña.type = "password";
-        iconContraseña.classList.remove('bx-hide');
-        iconContraseña.classList.add('bx-show-alt');
-    }
-});
-
-iconRepetirContraseña.addEventListener("click", e => {
-    if (repetir_contraseña.type === "password") {
-        repetir_contraseña.type = "text";
-        iconRepetirContraseña.classList.remove('bx-show-alt');
-        iconRepetirContraseña.classList.add('bx-hide');
-    } else {
-        repetir_contraseña.type = "password";
-        iconRepetirContraseña.classList.remove('bx-hide');
-        iconRepetirContraseña.classList.add('bx-show-alt');
-    } 
-  });
-
-
-//Validacion de contraseña
-const form = document.getElementById('cambiarContraseña');
-const passwordInput = document.getElementById('contraseña');
-const passwordError = document.getElementById('passwordError');
-
-form.addEventListener('submit', function(e) {
-  const password = passwordInput.value;
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-  if (!regex.test(contraseña)) {
-    e.preventDefault(); // Evita el envío del formulario
-    passwordError.style.display = 'block';
-  } else {
-    passwordError.style.display = 'none';
-  }
-});
-// Example starter JavaScript for disabling form submissions if there are invalid fields
-(function () {
-'use strict'
-
-// Fetch all the forms we want to apply custom Bootstrap validation styles to
-var forms = document.querySelectorAll('.needs-validation')
-
-// Loop over them and prevent submission
-Array.prototype.slice.call(forms)
-  .forEach(function (form) {
-    form.addEventListener('submit', function (event) {
-      if (!form.checkValidity()) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
-
-      form.classList.add('was-validated')
-    }, false)
-  })
-})()
-</script>
-<script>
-
-
-// Guardar los datos cuando el formulario se envíe
-document.getElementById("cambiarContraseña").addEventListener("submit", function(event) {
-  event.preventDefault(); // Evita que se envíe el formulario por defecto
-  
-
-  // Guardar datos del formulario en localStorage
-  
-  localStorage.setItem("contraseña", document.getElementById("contraseña").value);
-  localStorage.setItem("repetir_contraseña", document.getElementById("repetir_contraseña").value);
-
-  // Validar el formulario
-  if (document.getElementById("cambiarContraseña").checkValidity()) {
-      this.submit(); // Solo enviar el formulario si es válido
-  }  
-});
-
-
-// Cargar los datos desde localStorage si existen
-window.onload = function() {
+    const contraseña = document.getElementById("contraseña"),
+          repetir_contraseña = document.getElementById("repetir_contraseña"),
+          iconContraseña = document.querySelectorAll(".bx")[0],  
+          iconRepetirContraseña = document.querySelectorAll(".bx")[1];  
     
-    if (localStorage.getItem("contraseña")) {
-        document.getElementById("contraseña").value = localStorage.getItem("contraseña");
+    iconContraseña.addEventListener("click", e => {
+        if (contraseña.type === "password") {
+            contraseña.type = "text";
+            iconContraseña.classList.remove('bx-show-alt');
+            iconContraseña.classList.add('bx-hide');
+        } else {
+            contraseña.type = "password";
+            iconContraseña.classList.remove('bx-hide');
+            iconContraseña.classList.add('bx-show-alt');
+        }
+    });
+    
+    iconRepetirContraseña.addEventListener("click", e => {
+        if (repetir_contraseña.type === "password") {
+            repetir_contraseña.type = "text";
+            iconRepetirContraseña.classList.remove('bx-show-alt');
+            iconRepetirContraseña.classList.add('bx-hide');
+        } else {
+            repetir_contraseña.type = "password";
+            iconRepetirContraseña.classList.remove('bx-hide');
+            iconRepetirContraseña.classList.add('bx-show-alt');
+        }
+    })
+    </script>
+    <script>
+    //Validacion de contraseña
+    const form = document.getElementById('cambiarContraseña');
+      const passwordInput = document.getElementById('contraseña');
+      const passwordError = document.getElementById('passwordError');
+      
+      form.addEventListener('submit', function(e) {
+        const password = passwordInput.value;
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+        if (!regex.test(contraseña)) {
+          e.preventDefault(); // Evita el envío del formulario
+          passwordError.style.display = 'block';
+        } else {
+          passwordError.style.display = 'none';
+        }
+      });
+    // Example starter JavaScript for disabling form submissions if there are invalid fields
+    (function () {
+      'use strict'
+    
+      // Fetch all the forms we want to apply custom Bootstrap validation styles to
+      var forms = document.querySelectorAll('.needs-validation')
+    
+      // Loop over them and prevent submission
+      Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+          form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+    
+            form.classList.add('was-validated')
+          }, false)
+        })
+    })()
+    </script>
+    <script>
+    
+    
+    // Guardar los datos cuando el formulario se envíe
+    document.getElementById("cambiarContraseña").addEventListener("submit", function(event) {
+        event.preventDefault(); // Evita que se envíe el formulario por defecto
+        
+    
+        // Guardar datos del formulario en localStorage
+        
+        localStorage.setItem("contraseña", document.getElementById("contraseña").value);
+        localStorage.setItem("repetir_contraseña", document.getElementById("repetir_contraseña").value);
+    
+    
+        // Validar el formulario
+        if (document.getElementById("cambiarContraseña").checkValidity()) {
+            this.submit(); // Solo enviar el formulario si es válido
+        }  
+    });
+    
+    
+    // Cargar los datos desde localStorage si existen
+    window.onload = function() {
+          
+         
+          if (localStorage.getItem("contraseña")) {
+              document.getElementById("contraseña").value = localStorage.getItem("contraseña");
+          }
+          if (localStorage.getItem("repetir_contraseña")) {
+              document.getElementById("repetir_contraseña").value = localStorage.getItem("repetir_contraseña");
+          }
+         
+    
+    
+      };
+    // Limpiar localStorage al abandonar el registro o completar el proceso
+    function limpiarLocalStorage() {
+        localStorage.removeItem("contraseña");
+        localStorage.removeItem("repetir_contraseña");
+    
+    };
+    </script>
+    <script>
+    
+    const inputContraseña = document.getElementById("contraseña");
+    const strengthFill = document.getElementById("strength-fill");
+    const strengthText = document.getElementById("strength-text");
+    
+    let contraseñaEsRepetida = false;
+    
+    // Función para verificar si la contraseña es repetida
+    async function verificarRepetida(password) {
+        if (password.length < 8) return false;
+    
+        try {
+            const response = await fetch('/verificar-contraseña-repetida', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ contraseña: password })
+            });
+            const data = await response.json();
+            return data.repetida;
+        } catch (error) {
+            console.error("Error al verificar la contraseña:", error);
+            return false;
+        }
     }
-    if (localStorage.getItem("repetir_contraseña")) {
-        document.getElementById("repetir_contraseña").value = localStorage.getItem("repetir_contraseña");
+    
+    // Función para evaluar la seguridad de la contraseña
+    function evaluarNivelContraseña(password, esRepetida) {
+        let nivel = 0;
+    
+        const longitudOk = password.length >= 8;
+        const mayusculaOk = /[A-Z]/.test(password);
+        const numeroOk = /\d/.test(password);
+        const especialOk = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+        if (longitudOk) nivel++;
+        if (mayusculaOk) nivel++;
+        if (numeroOk) nivel++;
+        if (especialOk) nivel++;
+    
+        if (nivel === 4 && !esRepetida) {
+            return 4; // Muy alto
+        } else if (nivel === 4 && esRepetida) {
+            return 3; // Alto
+        } else if (nivel >= 2) {
+            return 2; // Medio
+        } else {
+            return 1; // Bajo
+        }
     }
-
-};
-// Limpiar localStorage al abandonar el registro o completar el proceso
-function limpiarLocalStorage() {
-  localStorage.removeItem("contraseña");
-  localStorage.removeItem("repetir_contraseña");
-};
-</script>
+    
+    // Función para actualizar la barra de seguridad
+    function actualizarBarra(nivel) {
+        const colores = ["#ff4d4d", "#ff9933", "#ffff66", "#66cc66"];
+        const textos = ["Bajo", "Medio", "Alto", "Muy alto"];
+        const porcentajes = ["25%", "50%", "75%", "100%"];
+    
+        strengthFill.style.width = porcentajes[nivel - 1] || "0%";
+        strengthFill.style.backgroundColor = colores[nivel - 1] || "#e0e0e0";
+        strengthText.innerText = `Nivel de seguridad: ${textos[nivel - 1] || ""}`;
+    }
+    
+    // Evento que se dispara al ingresar texto en el campo de contraseña
+    inputContraseña.addEventListener("input", async function () {
+        const valor = inputContraseña.value;
+        const esRepetida = await verificarRepetida(valor);
+        const nivel = evaluarNivelContraseña(valor, esRepetida);
+        actualizarBarra(nivel);
+    });
+    </script>
+  
   </body>
   
 {% endblock %}

@@ -13,7 +13,12 @@
 {% block content %} 
     <main class="px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h3 class="h2">Empleados registrados</h3>
+        <h3 class="h3">Empleados registrados</h3>
+
+        <div class="position-relative" style="width: 250px;">
+          <input type="text" id="buscarEmpleado" class="form-control" style="border-radius: 25px; padding-right: 40px;" placeholder="Buscar empleado...">
+          <i class="bx bx-search-alt-2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: gray; font-size: 20px;"></i>
+        </div>
       
   </div>
 
@@ -23,7 +28,7 @@
         <div class=container>
           
 
-        <table class="table table bordered">
+        <table class="table " id="tablaEmpleados">
             <thead>
                 <th scope="col">Cédula</th>
                 <th scope="col">Nombre</th>
@@ -56,7 +61,21 @@
 
 
 
-
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const inputBusqueda = document.getElementById("buscarEmpleado");
+          inputBusqueda.addEventListener("keyup", function() {
+              const filtro = this.value.toLowerCase();
+              const filas = document.querySelectorAll("#tablaEmpleados tbody tr");
+      
+              filas.forEach(fila => {
+                  const textoFila = fila.textContent.toLowerCase();
+                  fila.style.display = textoFila.includes(filtro) ? "" : "none";
+              });
+          });
+      });
+      </script>
+      
 
 
 
