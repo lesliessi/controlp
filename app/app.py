@@ -1319,7 +1319,8 @@ def actualizar_ultimo_acceso():
         session['ultimo_acceso'] = datetime.now()'''
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8000)
+    port = int(os.environ.get("PORT", 5000))  # Railway asigna el puerto dinámicamente
+app.run(host="0.0.0.0", port=port, debug=True)
 
 
     
