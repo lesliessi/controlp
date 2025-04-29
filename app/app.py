@@ -1159,9 +1159,10 @@ def verificarRespuesta():
         respuesta_usuario = request.form.get('respuesta_seguridad')  # Respuesta ingresada por el usuario
 
         cursor = conexion_MySQLdb.cursor(dictionary=True)
-        cursor.execute('SELECT respuesta_seguridad FROM usuario WHERE usuario = %s', (usuario,))
+        cursor.execute('SELECT pregunta_seguridad, respuesta_seguridad FROM usuario WHERE usuario = %s', (usuario,))
         account = cursor.fetchone()
         cursor.close()
+
 
         if account:
             if account['respuesta_seguridad'] == respuesta_usuario:
@@ -1169,7 +1170,7 @@ def verificarRespuesta():
                 return redirect(url_for('cambiarContraseña', usuario=usuario))
             else:
                 flash('La respuesta a la pregunta de seguridad es incorrecta.')
-                return render_template('login/recuperarContraseña2.html', usuario=usuario, pregunta_seguridad=request.form.get('pregunta_seguridad'))
+                return render_template('login/recuperarContraseña2.html', usuario=usuario,  pregunta_seguridad=account['pregunta_seguridad'])
 
     flash('Hubo un error, intenta de nuevo.')
     return redirect(url_for('recuperarContraseña'))
